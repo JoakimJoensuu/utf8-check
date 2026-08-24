@@ -1,6 +1,7 @@
 # UTF-8 check
 
-Incremental well-formed UTF-8 (RFC 3629) in C.
+Only checks well-formed UTF-8 (RFC 3629 §3). Incremental: a code point may
+split across feeds.
 
 ## Build
 
