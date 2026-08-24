@@ -31,7 +31,6 @@ CustomChecks:
       - BindName: field
         Message: field name is too short, expected at least 3 characters
         Level: Warning
-ExtraArgs: ['-Wno-gcc-install-dir-libstdcxx']
 CheckOptions:
   readability-identifier-length.IgnoredVariableNames: '^i$'
   readability-implicit-bool-conversion.AllowLogicalOperatorConversion: true
