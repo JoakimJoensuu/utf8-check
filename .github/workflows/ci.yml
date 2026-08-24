@@ -46,6 +46,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/clang
           key: clang-23.1.0-${{ runner.os }}-tidy-format-v3
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcgreen1-dev
       - run: cmake -B build
       - run: |
           export PATH="${{ runner.temp }}/clang/bin:$PATH"
@@ -73,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcgreen1-dev
       - run: cmake -B build
       - run: cmake --build build
       - run: ctest --test-dir build --output-on-failure

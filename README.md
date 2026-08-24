@@ -9,6 +9,9 @@ split across feeds.
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
+Tests need [cgreen](https://github.com/cgreen-devs/cgreen) (`libcgreen1-dev` on Debian).
+Examples and tests are off when this project is not the CMake top level.
+
 ## Style
 
 `--experimental-custom-checks` is required so `CustomChecks` in `.clang-tidy` run.

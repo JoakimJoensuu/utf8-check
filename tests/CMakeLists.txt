@@ -1,0 +1,10 @@
+find_path(CGREEN_INCLUDE_DIR cgreen/cgreen.h)
+find_library(CGREEN_LIBRARY cgreen)
+if(NOT CGREEN_INCLUDE_DIR OR NOT CGREEN_LIBRARY)
+  message(FATAL_ERROR "cgreen not found")
+endif()
+
+add_executable(test_utf8 utf8.c)
+target_link_libraries(test_utf8 PRIVATE utf8 utf8_warnings ${CGREEN_LIBRARY})
+target_include_directories(test_utf8 SYSTEM PRIVATE ${CGREEN_INCLUDE_DIR})
+add_test(NAME utf8 COMMAND test_utf8)

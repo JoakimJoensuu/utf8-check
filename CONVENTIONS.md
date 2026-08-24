@@ -35,7 +35,7 @@ functions. A flag on one operation is fine.
 ## Comments
 
 Comment only what names, types, and control flow cannot say. When a public
-declaration needs a comment, write it there, not on the definition.
+declaration needs a comment, write Doxygen there, not on the definition.
 
 ## Tests
 

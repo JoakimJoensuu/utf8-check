@@ -9,15 +9,31 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(CREATE_LINK "${CMAKE_BINARY_DIR}/compile_commands.json"
      "${CMAKE_SOURCE_DIR}/compile_commands.json" SYMBOLIC COPY_ON_ERROR)
 
-add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+add_library(utf8_warnings INTERFACE)
+target_compile_options(
+  utf8_warnings
+  INTERFACE -Wall
+            -Wextra
+            -Wpedantic
+            -Werror
+            -Wconversion
+            -Wformat=2
+            -Wmissing-prototypes
+            -Wshadow
+            -Wstrict-prototypes)
 
 add_library(utf8 src/utf8.c)
 target_include_directories(utf8 PUBLIC include)
+target_link_libraries(utf8 PRIVATE utf8_warnings)
 
-add_executable(check examples/check.c)
-target_link_libraries(check PRIVATE utf8)
+option(UTF8_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
+option(UTF8_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
-enable_testing()
-add_executable(test_utf8 tests/utf8.c)
-target_link_libraries(test_utf8 PRIVATE utf8)
-add_test(NAME utf8 COMMAND test_utf8)
+if(UTF8_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
+if(UTF8_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
