@@ -22,9 +22,9 @@ target_compile_options(
             -Wshadow
             -Wstrict-prototypes)
 
-add_library(utf8 src/utf8.c)
-target_include_directories(utf8 PUBLIC include)
-target_link_libraries(utf8 PRIVATE utf8_warnings)
+add_library(utf8c src/utf8c.c)
+target_include_directories(utf8c PUBLIC include)
+target_link_libraries(utf8c PRIVATE utf8_warnings)
 
 option(UTF8_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
 option(UTF8_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})

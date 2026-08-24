@@ -46,7 +46,6 @@ jobs:
         with:
           path: ${{ runner.temp }}/clang
           key: clang-23.1.0-${{ runner.os }}-tidy-format-v3
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcgreen1-dev
       - run: cmake -B build
       - run: |
           export PATH="${{ runner.temp }}/clang/bin:$PATH"
@@ -54,7 +53,7 @@ jobs:
           clang-format --version
           clang-tidy --version
           sources=$(find include src examples -type f \( -name '*.c' -o -name '*.h' \) | sort)
-          units=$(jq -r '.[].file' compile_commands.json)
+          units=$(jq -r '.[].file | select(contains("/_deps/") | not)' compile_commands.json)
           set +e
           clang-format --dry-run --Werror $sources | tee "$RUNNER_TEMP/format.log"
           fmt=${PIPESTATUS[0]}
@@ -74,7 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcgreen1-dev
       - run: cmake -B build
       - run: cmake --build build
       - run: ctest --test-dir build --output-on-failure

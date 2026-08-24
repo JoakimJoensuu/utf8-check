@@ -1,4 +1,4 @@
-#include "utf8.h"
+#include "utf8c.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -14,8 +14,7 @@ struct core {
   uint8_t illegal;
 };
 
-static_assert(sizeof(struct utf8) >= sizeof(struct core));
-static_assert(alignof(struct utf8) >= alignof(struct core));
+static_assert(sizeof((struct utf8c){}.bits) == sizeof(struct core));
 
 struct lead {
   uint8_t lead_min;
@@ -112,17 +111,17 @@ static const struct lead *lead_for(uint8_t octet) {
   return nullptr;
 }
 
-static struct core load(const struct utf8 *state) {
+static struct core unpack(struct utf8c object) {
   struct core core;
-  memcpy(&core, state->opaque, sizeof core);
+  memcpy(&core, &object.bits, sizeof core);
   return core;
 }
 
-static void save(struct utf8 *state, const struct core *core) {
-  memcpy(state->opaque, core, sizeof *core);
+static void pack(struct utf8c *state, struct core core) {
+  memcpy(&state->bits, &core, sizeof core);
 }
 
-static void require_state(const struct utf8 *state) {
+static void require_state(const struct utf8c *state) {
   if (state == nullptr) abort();
 }
 
@@ -130,24 +129,21 @@ static void require_src(const uint8_t *src, size_t length) {
   if (length != 0 && src == nullptr) abort();
 }
 
-void utf8_init(struct utf8 *state) {
-  require_state(state);
-  *state = (struct utf8){};
-}
+struct utf8c utf8c_init() { return (struct utf8c){}; }
 
-int utf8_feed(struct utf8 *state, const uint8_t *src, size_t length) {
+bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   require_state(state);
   require_src(src, length);
-  struct core core = load(state);
-  if (core.illegal != 0) return 1;
+  struct core core = unpack(*state);
+  if (core.illegal != 0) return false;
 
   for (size_t i = 0; i < length; i++) {
     uint8_t octet = src[i];
     if (core.rest_cnt != 0) {
       if (octet < core.next_min || octet > core.next_max) {
         core.illegal = 1;
-        save(state, &core);
-        return 1;
+        pack(state, core);
+        return false;
       }
       core.rest_cnt--;
       if (core.rest_cnt != 0) {
@@ -160,18 +156,19 @@ int utf8_feed(struct utf8 *state, const uint8_t *src, size_t length) {
     const struct lead *lead = lead_for(octet);
     if (lead == nullptr) {
       core.illegal = 1;
-      save(state, &core);
-      return 1;
+      pack(state, core);
+      return false;
     }
     core.rest_cnt = lead->rest_cnt;
     core.next_min = lead->cont_min;
     core.next_max = lead->cont_max;
   }
-  save(state, &core);
-  return 0;
+  pack(state, core);
+  return true;
 }
 
-int utf8_finish(const struct utf8 *state) {
+bool utf8c_finish(const struct utf8c *state) {
   require_state(state);
-  return load(state).rest_cnt != 0;
+  struct core core = unpack(*state);
+  return core.illegal == 0 && core.rest_cnt == 0;
 }

@@ -1,2 +1,2 @@
-add_executable(check check.c)
-target_link_libraries(check PRIVATE utf8 utf8_warnings)
+add_executable(example check.c)
+target_link_libraries(example PRIVATE utf8c utf8_warnings)
