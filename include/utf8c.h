@@ -6,18 +6,19 @@
 #include <stdint.h>
 
 /**
- * Incremental well-formed UTF-8 (RFC 3629 §3) only. Contents are private.
- *
- * Null pointers abort, except @p src of utf8c_feed() may be null when @p length
- * is 0.
+ * Incremental well-formed UTF-8 (RFC 3629 §3) checker.
  */
 struct utf8c {
-  uint32_t bits;
+  uint8_t rest_cnt;
+  uint8_t next_min;
+  uint8_t next_max;
+  bool illegal;
 };
 
 struct utf8c utf8c_init();
 
 /**
+ * @p src may be null when @p length is 0.
  * @return true if still valid, including an incomplete sequence.
  */
 bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length);

@@ -3,18 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 enum : uint8_t { tail_min = 0x80, tail_max = 0xBF };
-
-struct core {
-  uint8_t rest_cnt;
-  uint8_t next_min;
-  uint8_t next_max;
-  uint8_t illegal;
-};
-
-static_assert(sizeof((struct utf8c){}.bits) == sizeof(struct core));
 
 struct lead {
   uint8_t lead_min;
@@ -111,64 +101,41 @@ static const struct lead *lead_for(uint8_t octet) {
   return nullptr;
 }
 
-static struct core unpack(struct utf8c object) {
-  struct core core;
-  memcpy(&core, &object.bits, sizeof core);
-  return core;
-}
-
-static void pack(struct utf8c *state, struct core core) {
-  memcpy(&state->bits, &core, sizeof core);
-}
-
-static void require_state(const struct utf8c *state) {
-  if (state == nullptr) abort();
-}
-
-static void require_src(const uint8_t *src, size_t length) {
-  if (length != 0 && src == nullptr) abort();
-}
-
 struct utf8c utf8c_init() { return (struct utf8c){}; }
 
 bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
-  require_state(state);
-  require_src(src, length);
-  struct core core = unpack(*state);
-  if (core.illegal != 0) return false;
+  if (state == nullptr) abort();
+  if (length != 0 && src == nullptr) abort();
+  if (state->illegal) return false;
 
   for (size_t i = 0; i < length; i++) {
     uint8_t octet = src[i];
-    if (core.rest_cnt != 0) {
-      if (octet < core.next_min || octet > core.next_max) {
-        core.illegal = 1;
-        pack(state, core);
+    if (state->rest_cnt != 0) {
+      if (octet < state->next_min || octet > state->next_max) {
+        state->illegal = true;
         return false;
       }
-      core.rest_cnt--;
-      if (core.rest_cnt != 0) {
-        core.next_min = tail_min;
-        core.next_max = tail_max;
+      state->rest_cnt--;
+      if (state->rest_cnt != 0) {
+        state->next_min = tail_min;
+        state->next_max = tail_max;
       }
       continue;
     }
 
     const struct lead *lead = lead_for(octet);
     if (lead == nullptr) {
-      core.illegal = 1;
-      pack(state, core);
+      state->illegal = true;
       return false;
     }
-    core.rest_cnt = lead->rest_cnt;
-    core.next_min = lead->cont_min;
-    core.next_max = lead->cont_max;
+    state->rest_cnt = lead->rest_cnt;
+    state->next_min = lead->cont_min;
+    state->next_max = lead->cont_max;
   }
-  pack(state, core);
   return true;
 }
 
 bool utf8c_finish(const struct utf8c *state) {
-  require_state(state);
-  struct core core = unpack(*state);
-  return core.illegal == 0 && core.rest_cnt == 0;
+  if (state == nullptr) abort();
+  return !state->illegal && state->rest_cnt == 0;
 }

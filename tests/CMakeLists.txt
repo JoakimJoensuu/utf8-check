@@ -38,7 +38,9 @@ add_library(
   ${cgreen_src_dir}/posix_cgreen_pipe.c
   ${cgreen_src_dir}/posix_cgreen_time.c
   ${cgreen_src_dir}/posix_runner_platform.c)
-set_target_properties(cgreen_static PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
+set_target_properties(
+  cgreen_static
+  PROPERTIES C_STANDARD 11 C_EXTENSIONS ON EXPORT_COMPILE_COMMANDS OFF)
 target_compile_definitions(cgreen_static PRIVATE "VERSION=\"1.6.3\"")
 target_include_directories(
   cgreen_static
@@ -47,5 +49,5 @@ target_include_directories(
 target_link_libraries(cgreen_static PUBLIC Threads::Threads m)
 
 add_executable(test_utf8 utf8.c)
-target_link_libraries(test_utf8 PRIVATE utf8c utf8_warnings cgreen_static)
+target_link_libraries(test_utf8 PRIVATE utf8c utf8c_warnings cgreen_static)
 add_test(NAME utf8 COMMAND test_utf8)
