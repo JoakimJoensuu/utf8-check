@@ -5,20 +5,23 @@
 #include <stdlib.h>
 
 enum : uint32_t {
-  utf8_1_mask = 0x80,
-  utf8_1_tag = 0x00,
-  utf8_2_mask = 0xE0,
-  utf8_2_tag = 0xC0,
-  utf8_2_payload = 0x1F,
-  utf8_3_mask = 0xF0,
-  utf8_3_tag = 0xE0,
-  utf8_3_payload = 0x0F,
-  utf8_4_mask = 0xF8,
-  utf8_4_tag = 0xF0,
-  utf8_4_payload = 0x07,
-  utf8_tail_mask = 0xC0,
-  utf8_tail_tag = 0x80,
-  utf8_tail_payload = 0x3F,
+  utf8_1_mask = 0b10000000,
+  utf8_1_tag = 0b00000000,
+  utf8_2_mask = 0b11100000,
+  utf8_2_tag = 0b11000000,
+  utf8_2_payload = 0b00011111,
+  utf8_3_mask = 0b11110000,
+  utf8_3_tag = 0b11100000,
+  utf8_3_payload = 0b00001111,
+  utf8_4_mask = 0b11111000,
+  utf8_4_tag = 0b11110000,
+  utf8_4_payload = 0b00000111,
+  utf8_tail_mask = 0b11000000,
+  utf8_tail_tag = 0b10000000,
+  utf8_tail_payload = 0b00111111,
+};
+
+enum : uint32_t {
   utf8_2_min = 0x80,
   utf8_3_min = 0x800,
   surrogate_min = 0xD800,
