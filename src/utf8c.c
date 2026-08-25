@@ -56,32 +56,32 @@ enum utf8_following_cnt : uint8_t {
 };
 
 enum : uint32_t {
-  utf8_1_min = 0b00000000'00000000'00000000'00000000,
-  utf8_1_max = 0b00000000'00000000'00000000'01111111,
-  utf8_2_min = 0b00000000'00000000'00000000'10000000,
-  utf8_2_max = 0b00000000'00000000'00000111'11111111,
-  utf8_3_min = 0b00000000'00000000'00001000'00000000,
-  utf8_3_max = 0b00000000'00000000'11111111'11111111,
-  utf8_4_min = 0b00000000'00000001'00000000'00000000,
-  utf8_4_max = 0b00000000'00010000'11111111'11111111,
+  utf8_1_character_min = 0x0000'0000,
+  utf8_1_character_max = 0x0000'007F,
+  utf8_2_character_min = 0x0000'0080,
+  utf8_2_character_max = 0x0000'07FF,
+  utf8_3_character_min = 0x0000'0800,
+  utf8_3_character_max = 0x0000'FFFF,
+  utf8_4_character_min = 0x0001'0000,
+  utf8_4_character_max = 0x0010'FFFF,
 };
 
 enum : uint32_t {
-  utf16_surrogate_min = 0b00000000'00000000'11011000'00000000,
-  utf16_surrogate_max = 0b00000000'00000000'11011111'11111111,
+  utf16_surrogate_min = 0x0000'D800,
+  utf16_surrogate_max = 0x0000'DFFF,
 };
 
 static bool character_ok(uint32_t const *character, size_t octet_len) {
   switch (octet_len) {
   case utf8_1_octet_len:
-    return *character <= utf8_1_max;
+    return *character <= utf8_1_character_max;
   case utf8_2_octet_len:
-    return *character >= utf8_2_min && *character <= utf8_2_max;
+    return *character >= utf8_2_character_min && *character <= utf8_2_character_max;
   case utf8_3_octet_len:
-    return *character >= utf8_3_min && *character <= utf8_3_max &&
+    return *character >= utf8_3_character_min && *character <= utf8_3_character_max &&
            (*character < utf16_surrogate_min || *character > utf16_surrogate_max);
   case utf8_4_octet_len:
-    return *character >= utf8_4_min && *character <= utf8_4_max;
+    return *character >= utf8_4_character_min && *character <= utf8_4_character_max;
   default:
     abort();
   }
