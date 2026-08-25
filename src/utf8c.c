@@ -18,9 +18,9 @@
  */
 
 enum utf8_lead_octet_mask : uint8_t {
-  utf8_2_payload_mask = 0b00011111,
-  utf8_3_payload_mask = 0b00001111,
-  utf8_4_payload_mask = 0b00000111,
+  utf8_2_lead_payload_mask = 0b00011111,
+  utf8_3_lead_payload_mask = 0b00001111,
+  utf8_4_lead_payload_mask = 0b00000111,
 };
 
 enum utf8_tail_octet : uint8_t {
@@ -91,17 +91,17 @@ static bool feed_lead(struct utf8c *state, uint8_t octet) {
   case 0:
     return true;
   case 2:
-    state->character = (uint32_t)octet & utf8_2_payload_mask;
+    state->character = (uint32_t)octet & utf8_2_lead_payload_mask;
     state->octet_len = utf8_2_octet_len;
     state->remaining_octet_cnt = utf8_2_tail_cnt;
     return true;
   case 3:
-    state->character = (uint32_t)octet & utf8_3_payload_mask;
+    state->character = (uint32_t)octet & utf8_3_lead_payload_mask;
     state->octet_len = utf8_3_octet_len;
     state->remaining_octet_cnt = utf8_3_tail_cnt;
     return true;
   case 4:
-    state->character = (uint32_t)octet & utf8_4_payload_mask;
+    state->character = (uint32_t)octet & utf8_4_lead_payload_mask;
     state->octet_len = utf8_4_octet_len;
     state->remaining_octet_cnt = utf8_4_tail_cnt;
     return true;
