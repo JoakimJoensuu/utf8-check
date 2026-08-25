@@ -108,10 +108,10 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (length != 0 && src == nullptr) abort();
   if (state->illegal) return false;
 
-  for (size_t i = 0; i < length; i++) {
-    uint8_t octet = src[i];
+  if (length == 0) return true;
+  for (const uint8_t *octet = src; octet != src + length; octet++) {
     if (state->remaining_octet_cnt == 0) {
-      const struct lead *lead = lead_for(octet);
+      const struct lead *lead = lead_for(*octet);
       if (lead == nullptr) {
         state->illegal = true;
         return false;
@@ -122,7 +122,7 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
       continue;
     }
 
-    if (octet < state->next_octet_min || octet > state->next_octet_max) {
+    if (*octet < state->next_octet_min || *octet > state->next_octet_max) {
       state->illegal = true;
       return false;
     }
