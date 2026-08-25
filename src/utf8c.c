@@ -76,10 +76,12 @@ static bool feed_following(struct utf8c *state, uint8_t octet) {
     state->illegal = true;
     return false;
   }
+
   state->character <<= utf8_following_bit_cnt;
   state->character |= (uint32_t)octet & utf8_following_payload_mask;
   state->remaining_octet_cnt--;
   if (state->remaining_octet_cnt != 0) return true;
+
   switch (state->octet_len) {
   case utf8_2_octet_len:
     if (state->character < utf8_2_min || state->character > utf8_2_max) {
@@ -103,6 +105,7 @@ static bool feed_following(struct utf8c *state, uint8_t octet) {
   default:
     abort();
   }
+
   state->character = 0;
   state->octet_len = 0;
   return true;
@@ -136,6 +139,7 @@ static bool feed_initial(struct utf8c *state, uint8_t octet) {
 bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (state == nullptr) abort();
   if (length != 0 && src == nullptr) abort();
+
   if (state->illegal) return false;
   if (length == 0) return true;
 
@@ -155,5 +159,6 @@ struct utf8c utf8c_init() {
 
 bool utf8c_finish(const struct utf8c *state) {
   if (state == nullptr) abort();
+
   return !state->illegal && state->remaining_octet_cnt == 0;
 }
