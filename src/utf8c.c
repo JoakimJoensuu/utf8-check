@@ -28,12 +28,14 @@ enum utf8_initial_octet_leading_ones : uint8_t {
 };
 
 enum utf8_initial_octet_mask : uint8_t {
+  utf8_1_initial_payload_mask = 0b01111111,
   utf8_2_initial_payload_mask = 0b00011111,
   utf8_3_initial_payload_mask = 0b00001111,
   utf8_4_initial_payload_mask = 0b00000111,
 };
 
 enum utf8_octet_len : uint8_t {
+  utf8_1_octet_len = 1,
   utf8_2_octet_len = 2,
   utf8_3_octet_len = 3,
   utf8_4_octet_len = 4,
@@ -47,14 +49,19 @@ enum utf8_following_octet : uint8_t {
 };
 
 enum utf8_following_cnt : uint8_t {
+  utf8_1_following_cnt = 0,
   utf8_2_following_cnt = 1,
   utf8_3_following_cnt = 2,
   utf8_4_following_cnt = 3,
 };
 
 enum utf8_character : uint32_t {
+  utf8_1_min = 0b00000000'00000000'00000000'00000000,
+  utf8_1_max = 0b00000000'00000000'00000000'01111111,
   utf8_2_min = 0b00000000'00000000'00000000'10000000,
+  utf8_2_max = 0b00000000'00000000'00000111'11111111,
   utf8_3_min = 0b00000000'00000000'00001000'00000000,
+  utf8_3_max = 0b00000000'00000000'11111111'11111111,
   utf8_4_min = 0b00000000'00000001'00000000'00000000,
   utf8_4_max = 0b00000000'00010000'11111111'11111111,
 };
@@ -67,9 +74,9 @@ enum utf16_surrogate : uint32_t {
 static bool character_ok(const struct utf8c *state) {
   switch (state->octet_len) {
   case utf8_2_octet_len:
-    return state->character >= utf8_2_min;
+    return state->character >= utf8_2_min && state->character <= utf8_2_max;
   case utf8_3_octet_len:
-    return state->character >= utf8_3_min &&
+    return state->character >= utf8_3_min && state->character <= utf8_3_max &&
            (state->character < utf16_surrogate_min || state->character > utf16_surrogate_max);
   case utf8_4_octet_len:
     return state->character >= utf8_4_min && state->character <= utf8_4_max;
