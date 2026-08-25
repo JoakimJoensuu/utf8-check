@@ -18,7 +18,7 @@ enum utf8_tail_octet : uint8_t {
   utf8_tail_bit_cnt      = 6,
 };
 
-enum utf8_char_number : uint32_t {
+enum utf8_character : uint32_t {
   utf8_2_min = 0b00000000'00000000'00000000'10000000,
   utf8_3_min = 0b00000000'00000000'00001000'00000000,
   utf8_4_min = 0b00000000'00000001'00000000'00000000,
@@ -42,15 +42,15 @@ enum utf8_lead_tail_cnt : uint8_t {
   utf8_4_tail_cnt = 3,
 };
 
-static bool char_number_ok(const struct utf8c *state) {
+static bool character_ok(const struct utf8c *state) {
   switch (state->octet_len) {
   case utf8_2_octet_len:
-    return state->char_number >= utf8_2_min;
+    return state->character >= utf8_2_min;
   case utf8_3_octet_len:
-    return state->char_number >= utf8_3_min &&
-           (state->char_number < utf16_surrogate_min || state->char_number > utf16_surrogate_max);
+    return state->character >= utf8_3_min &&
+           (state->character < utf16_surrogate_min || state->character > utf16_surrogate_max);
   case utf8_4_octet_len:
-    return state->char_number >= utf8_4_min && state->char_number <= utf8_4_max;
+    return state->character >= utf8_4_min && state->character <= utf8_4_max;
   default:
     abort();
   }
@@ -61,15 +61,15 @@ static bool feed_tail(struct utf8c *state, uint8_t octet) {
     state->illegal = true;
     return false;
   }
-  state->char_number <<= utf8_tail_bit_cnt;
-  state->char_number |= (uint32_t)octet & utf8_tail_payload_mask;
+  state->character <<= utf8_tail_bit_cnt;
+  state->character |= (uint32_t)octet & utf8_tail_payload_mask;
   state->remaining_octet_cnt--;
   if (state->remaining_octet_cnt != 0) return true;
-  if (!char_number_ok(state)) {
+  if (!character_ok(state)) {
     state->illegal = true;
     return false;
   }
-  state->char_number = 0;
+  state->character = 0;
   state->octet_len = 0;
   return true;
 }
@@ -79,17 +79,17 @@ static bool feed_lead(struct utf8c *state, uint8_t octet) {
   case 0:
     return true;
   case 2:
-    state->char_number = (uint32_t)octet & utf8_2_payload_mask;
+    state->character = (uint32_t)octet & utf8_2_payload_mask;
     state->octet_len = utf8_2_octet_len;
     state->remaining_octet_cnt = utf8_2_tail_cnt;
     return true;
   case 3:
-    state->char_number = (uint32_t)octet & utf8_3_payload_mask;
+    state->character = (uint32_t)octet & utf8_3_payload_mask;
     state->octet_len = utf8_3_octet_len;
     state->remaining_octet_cnt = utf8_3_tail_cnt;
     return true;
   case 4:
-    state->char_number = (uint32_t)octet & utf8_4_payload_mask;
+    state->character = (uint32_t)octet & utf8_4_payload_mask;
     state->octet_len = utf8_4_octet_len;
     state->remaining_octet_cnt = utf8_4_tail_cnt;
     return true;
