@@ -5,19 +5,20 @@
 #include <stdlib.h>
 
 enum : uint8_t {
+  ascii_max_lead_octet = 0x7F,
   cont_min = 0x80,
   cont_max = 0xBF,
-  two_min = 0xC2,
-  two_max = 0xDF,
+  two_min_lead_octet = 0xC2,
+  two_max_lead_octet = 0xDF,
   lead_e0 = 0xE0,
-  three_min = 0xE1,
-  three_max = 0xEC,
+  three_min_lead_octet = 0xE1,
+  three_max_lead_octet = 0xEC,
   lead_ed = 0xED,
   lead_ee = 0xEE,
   lead_ef = 0xEF,
   lead_f0 = 0xF0,
-  four_min = 0xF1,
-  four_max = 0xF3,
+  four_min_lead_octet = 0xF1,
+  four_max_lead_octet = 0xF3,
   lead_f4 = 0xF4,
 };
 
@@ -83,13 +84,13 @@ static const struct form four_byte_f4 = {
 
 static const struct form *form_for(uint8_t lead_octet) {
   const struct form *form = nullptr;
-  if (lead_octet < cont_min)
+  if (lead_octet <= ascii_max_lead_octet)
     form = &ascii;
-  else if (lead_octet >= two_min && lead_octet <= two_max)
+  else if (lead_octet >= two_min_lead_octet && lead_octet <= two_max_lead_octet)
     form = &two_byte;
   else if (lead_octet == lead_e0)
     form = &three_byte_e0;
-  else if (lead_octet >= three_min && lead_octet <= three_max)
+  else if (lead_octet >= three_min_lead_octet && lead_octet <= three_max_lead_octet)
     form = &three_byte;
   else if (lead_octet == lead_ed)
     form = &three_byte_ed;
@@ -97,7 +98,7 @@ static const struct form *form_for(uint8_t lead_octet) {
     form = &three_byte_high;
   else if (lead_octet == lead_f0)
     form = &four_byte_f0;
-  else if (lead_octet >= four_min && lead_octet <= four_max)
+  else if (lead_octet >= four_min_lead_octet && lead_octet <= four_max_lead_octet)
     form = &four_byte;
   else if (lead_octet == lead_f4)
     form = &four_byte_f4;
