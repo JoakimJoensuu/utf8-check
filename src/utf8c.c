@@ -147,7 +147,7 @@ bool utf8c_feed(struct utf8c *utf8c, const uint8_t *src, size_t length) {
   if (utf8c == nullptr) abort();
   if (length != 0 && src == nullptr) abort();
 
-  struct state *state = (struct state *)utf8c->opaque;
+  struct state *state = (struct state *)utf8c;
   if (state->illegal) return false;
   if (length == 0) return true;
 
@@ -168,6 +168,6 @@ struct utf8c utf8c_init() {
 bool utf8c_finish(const struct utf8c *utf8c) {
   if (utf8c == nullptr) abort();
 
-  const struct state *state = (const struct state *)utf8c->opaque;
+  const struct state *state = (const struct state *)utf8c;
   return !state->illegal && state->remaining_octet_cnt == 0;
 }
