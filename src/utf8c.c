@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * RFC 3629 §3:
@@ -71,43 +72,24 @@ enum : uint32_t {
   utf16_surrogate_max = 0x0000'DFFF,
 };
 
-enum : uint32_t {
-  packed_character_mask  = 0x1FFFFF,
-  packed_remaining_shift = 21,
-  packed_remaining_mask  = 0x3,
-  packed_octet_len_shift = 23,
-  packed_octet_len_mask  = 0x7,
-  packed_illegal_shift   = 26,
-};
-
-static_assert((uint32_t)utf8_4_character_max <= packed_character_mask);
-static_assert((uint32_t)utf8_4_following_cnt <= packed_remaining_mask);
-static_assert((uint32_t)utf8_4_octet_len <= packed_octet_len_mask);
-
 struct checker {
   uint32_t character;
-  uint8_t remaining_octet_cnt;
-  uint8_t octet_len;
+  size_t remaining_octet_cnt;
+  size_t octet_len;
   bool illegal;
 };
 
-static struct checker unpack(struct utf8c object) {
-  return (struct checker){
-      .character = object.bits & packed_character_mask,
-      .remaining_octet_cnt =
-          (uint8_t)((object.bits >> packed_remaining_shift) & packed_remaining_mask),
-      .octet_len = (uint8_t)((object.bits >> packed_octet_len_shift) & packed_octet_len_mask),
-      .illegal = (object.bits >> packed_illegal_shift) != 0,
-  };
+static_assert(sizeof(struct checker) <= sizeof(struct utf8c));
+static_assert(alignof(struct checker) <= alignof(struct utf8c));
+
+static struct checker load(const struct utf8c *state) {
+  struct checker checker;
+  memcpy(&checker, state->opaque, sizeof checker);
+  return checker;
 }
 
-static struct utf8c pack(struct checker checker) {
-  return (struct utf8c){
-      .bits = (checker.character & packed_character_mask) |
-              ((uint32_t)checker.remaining_octet_cnt << packed_remaining_shift) |
-              ((uint32_t)checker.octet_len << packed_octet_len_shift) |
-              ((uint32_t)checker.illegal << packed_illegal_shift),
-  };
+static void store(struct utf8c *state, struct checker checker) {
+  memcpy(state->opaque, &checker, sizeof checker);
 }
 
 static bool character_ok(uint32_t const *character, size_t octet_len) {
@@ -176,24 +158,24 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (state == nullptr) abort();
   if (length != 0 && src == nullptr) abort();
 
-  struct checker checker = unpack(*state);
+  struct checker checker = load(state);
   if (checker.illegal) return false;
   if (length == 0) return true;
 
   for (const uint8_t *octet = src; octet < src + length; octet++) {
     if (checker.remaining_octet_cnt == 0) {
       if (!feed_initial(&checker, *octet)) {
-        *state = pack(checker);
+        store(state, checker);
         return false;
       }
     } else {
       if (!feed_following(&checker, *octet)) {
-        *state = pack(checker);
+        store(state, checker);
         return false;
       }
     }
   }
-  *state = pack(checker);
+  store(state, checker);
   return true;
 }
 
@@ -204,6 +186,6 @@ struct utf8c utf8c_init() {
 bool utf8c_finish(const struct utf8c *state) {
   if (state == nullptr) abort();
 
-  struct checker checker = unpack(*state);
+  struct checker checker = load(state);
   return !checker.illegal && checker.remaining_octet_cnt == 0;
 }

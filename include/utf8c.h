@@ -9,7 +9,7 @@
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
  */
 struct utf8c {
-  uint32_t bits;
+  alignas(max_align_t) unsigned char opaque[sizeof(max_align_t) * 4];
 };
 
 struct utf8c utf8c_init();
