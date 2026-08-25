@@ -72,24 +72,24 @@ enum : uint32_t {
   utf16_surrogate_max = 0x0000'DFFF,
 };
 
-struct checker {
+struct state {
   uint32_t character;
   size_t remaining_octet_cnt;
   size_t octet_len;
   bool illegal;
 };
 
-static_assert(sizeof(struct checker) <= sizeof(struct utf8c));
-static_assert(alignof(struct checker) <= alignof(struct utf8c));
+static_assert(sizeof(struct state) <= sizeof(struct utf8c));
+static_assert(alignof(struct state) <= alignof(struct utf8c));
 
-static struct checker load(const struct utf8c *state) {
-  struct checker checker;
-  memcpy(&checker, state->opaque, sizeof checker);
-  return checker;
+static struct state load(const struct utf8c *utf8c) {
+  struct state state;
+  memcpy(&state, utf8c->opaque, sizeof state);
+  return state;
 }
 
-static void store(struct utf8c *state, struct checker checker) {
-  memcpy(state->opaque, &checker, sizeof checker);
+static void store(struct utf8c *utf8c, struct state state) {
+  memcpy(utf8c->opaque, &state, sizeof state);
 }
 
 static bool character_ok(uint32_t const *character, size_t octet_len) {
@@ -108,74 +108,74 @@ static bool character_ok(uint32_t const *character, size_t octet_len) {
   }
 }
 
-static bool feed_following(struct checker *checker, uint8_t octet) {
+static bool feed_following(struct state *state, uint8_t octet) {
   if ((octet & utf8_following_high_order_bit_mask) != utf8_following_high_order_bits) {
-    checker->illegal = true;
+    state->illegal = true;
     return false;
   }
 
-  checker->character <<= utf8_following_bit_cnt;
-  checker->character |= (uint32_t)octet & utf8_following_payload_mask;
-  checker->remaining_octet_cnt--;
-  if (checker->remaining_octet_cnt != 0) return true;
+  state->character <<= utf8_following_bit_cnt;
+  state->character |= (uint32_t)octet & utf8_following_payload_mask;
+  state->remaining_octet_cnt--;
+  if (state->remaining_octet_cnt != 0) return true;
 
-  if (!character_ok(&checker->character, checker->octet_len)) {
-    checker->illegal = true;
+  if (!character_ok(&state->character, state->octet_len)) {
+    state->illegal = true;
     return false;
   }
 
-  checker->character = 0;
-  checker->octet_len = 0;
+  state->character = 0;
+  state->octet_len = 0;
   return true;
 }
 
-static bool feed_initial(struct checker *checker, uint8_t octet) {
+static bool feed_initial(struct state *state, uint8_t octet) {
   switch (stdc_leading_ones(octet)) {
   case utf8_1_initial_octet_leading_ones:
     return true;
   case utf8_2_initial_octet_leading_ones:
-    checker->character = (uint32_t)octet & utf8_2_initial_payload_mask;
-    checker->octet_len = utf8_2_octet_len;
-    checker->remaining_octet_cnt = utf8_2_following_cnt;
+    state->character = (uint32_t)octet & utf8_2_initial_payload_mask;
+    state->octet_len = utf8_2_octet_len;
+    state->remaining_octet_cnt = utf8_2_following_cnt;
     return true;
   case utf8_3_initial_octet_leading_ones:
-    checker->character = (uint32_t)octet & utf8_3_initial_payload_mask;
-    checker->octet_len = utf8_3_octet_len;
-    checker->remaining_octet_cnt = utf8_3_following_cnt;
+    state->character = (uint32_t)octet & utf8_3_initial_payload_mask;
+    state->octet_len = utf8_3_octet_len;
+    state->remaining_octet_cnt = utf8_3_following_cnt;
     return true;
   case utf8_4_initial_octet_leading_ones:
-    checker->character = (uint32_t)octet & utf8_4_initial_payload_mask;
-    checker->octet_len = utf8_4_octet_len;
-    checker->remaining_octet_cnt = utf8_4_following_cnt;
+    state->character = (uint32_t)octet & utf8_4_initial_payload_mask;
+    state->octet_len = utf8_4_octet_len;
+    state->remaining_octet_cnt = utf8_4_following_cnt;
     return true;
   default:
-    checker->illegal = true;
+    state->illegal = true;
     return false;
   }
 }
 
-bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
-  if (state == nullptr) abort();
+bool utf8c_feed(struct utf8c *utf8c, const uint8_t *src, size_t length) {
+  if (utf8c == nullptr) abort();
   if (length != 0 && src == nullptr) abort();
 
-  struct checker checker = load(state);
-  if (checker.illegal) return false;
+  struct state state = load(utf8c);
+  if (state.illegal) return false;
   if (length == 0) return true;
 
   for (const uint8_t *octet = src; octet < src + length; octet++) {
-    if (checker.remaining_octet_cnt == 0) {
-      if (!feed_initial(&checker, *octet)) {
-        store(state, checker);
+    if (state.remaining_octet_cnt == 0) {
+      if (!feed_initial(&state, *octet)) {
+        store(utf8c, state);
         return false;
       }
     } else {
-      if (!feed_following(&checker, *octet)) {
-        store(state, checker);
+      if (!feed_following(&state, *octet)) {
+        store(utf8c, state);
         return false;
       }
     }
   }
-  store(state, checker);
+  store(utf8c, state);
   return true;
 }
 
@@ -183,9 +183,9 @@ struct utf8c utf8c_init() {
   return (struct utf8c){};
 }
 
-bool utf8c_finish(const struct utf8c *state) {
-  if (state == nullptr) abort();
+bool utf8c_finish(const struct utf8c *utf8c) {
+  if (utf8c == nullptr) abort();
 
-  struct checker checker = load(state);
-  return !checker.illegal && checker.remaining_octet_cnt == 0;
+  struct state state = load(utf8c);
+  return !state.illegal && state.remaining_octet_cnt == 0;
 }
