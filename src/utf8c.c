@@ -53,6 +53,24 @@ static bool char_number_ok(const struct utf8c *state) {
   }
 }
 
+static bool feed_tail(struct utf8c *state, uint8_t octet) {
+  if ((octet & utf8_tail_mask) != utf8_tail) {
+    state->illegal = true;
+    return false;
+  }
+  state->char_number <<= utf8_tail_bit_cnt;
+  state->char_number |= (uint32_t)octet & utf8_tail_payload_mask;
+  state->remaining_octet_cnt--;
+  if (state->remaining_octet_cnt != 0) return true;
+  if (!char_number_ok(state)) {
+    state->illegal = true;
+    return false;
+  }
+  state->char_number = 0;
+  state->octet_len = 0;
+  return true;
+}
+
 static bool feed_lead(struct utf8c *state, uint8_t octet) {
   switch (stdc_leading_ones(octet)) {
   case 0:
@@ -76,24 +94,6 @@ static bool feed_lead(struct utf8c *state, uint8_t octet) {
     state->illegal = true;
     return false;
   }
-}
-
-static bool feed_tail(struct utf8c *state, uint8_t octet) {
-  if ((octet & utf8_tail_mask) != utf8_tail) {
-    state->illegal = true;
-    return false;
-  }
-  state->char_number <<= utf8_tail_bit_cnt;
-  state->char_number |= (uint32_t)octet & utf8_tail_payload_mask;
-  state->remaining_octet_cnt--;
-  if (state->remaining_octet_cnt != 0) return true;
-  if (!char_number_ok(state)) {
-    state->illegal = true;
-    return false;
-  }
-  state->char_number = 0;
-  state->octet_len = 0;
-  return true;
 }
 
 struct utf8c utf8c_init() {
