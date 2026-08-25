@@ -40,6 +40,26 @@ enum : uint8_t {
   utf8_tail_bit_cnt = 6,
 };
 
+static bool utf8_1(uint32_t octet) {
+  return (octet & utf8_1_mask) == utf8_1_tag;
+}
+
+static bool utf8_2(uint32_t octet) {
+  return (octet & utf8_2_mask) == utf8_2_tag;
+}
+
+static bool utf8_3(uint32_t octet) {
+  return (octet & utf8_3_mask) == utf8_3_tag;
+}
+
+static bool utf8_4(uint32_t octet) {
+  return (octet & utf8_4_mask) == utf8_4_tag;
+}
+
+static bool utf8_tail(uint32_t octet) {
+  return (octet & utf8_tail_mask) == utf8_tail_tag;
+}
+
 static bool char_number_ok(const struct utf8c *state) {
   switch (state->octet_len) {
   case utf8_2_octet_len:
@@ -52,6 +72,29 @@ static bool char_number_ok(const struct utf8c *state) {
   default:
     abort();
   }
+}
+
+static bool reject(struct utf8c *state) {
+  state->illegal = true;
+  return false;
+}
+
+static void utf8_2_start(struct utf8c *state, uint32_t octet) {
+  state->char_number = octet & utf8_2_payload;
+  state->octet_len = utf8_2_octet_len;
+  state->remaining_octet_cnt = utf8_2_tail_cnt;
+}
+
+static void utf8_3_start(struct utf8c *state, uint32_t octet) {
+  state->char_number = octet & utf8_3_payload;
+  state->octet_len = utf8_3_octet_len;
+  state->remaining_octet_cnt = utf8_3_tail_cnt;
+}
+
+static void utf8_4_start(struct utf8c *state, uint32_t octet) {
+  state->char_number = octet & utf8_4_payload;
+  state->octet_len = utf8_4_octet_len;
+  state->remaining_octet_cnt = utf8_4_tail_cnt;
 }
 
 struct utf8c utf8c_init() {
@@ -67,46 +110,31 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   for (const uint8_t *cursor = src; cursor < src + length; cursor++) {
     uint32_t const octet = *cursor;
     if (state->remaining_octet_cnt != 0) {
-      if ((octet & utf8_tail_mask) != utf8_tail_tag) {
-        state->illegal = true;
-        return false;
-      }
+      if (!utf8_tail(octet)) return reject(state);
       state->char_number <<= utf8_tail_bit_cnt;
       state->char_number |= octet & utf8_tail_payload;
       state->remaining_octet_cnt--;
       if (state->remaining_octet_cnt != 0) continue;
-      if (!char_number_ok(state)) {
-        state->illegal = true;
-        return false;
-      }
+      if (!char_number_ok(state)) return reject(state);
       state->char_number = 0;
       state->octet_len = 0;
       continue;
     }
 
-    if ((octet & utf8_1_mask) == utf8_1_tag) continue;
-
-    if ((octet & utf8_2_mask) == utf8_2_tag) {
-      state->char_number = octet & utf8_2_payload;
-      state->octet_len = utf8_2_octet_len;
-      state->remaining_octet_cnt = utf8_2_tail_cnt;
+    if (utf8_1(octet)) continue;
+    if (utf8_2(octet)) {
+      utf8_2_start(state, octet);
       continue;
     }
-    if ((octet & utf8_3_mask) == utf8_3_tag) {
-      state->char_number = octet & utf8_3_payload;
-      state->octet_len = utf8_3_octet_len;
-      state->remaining_octet_cnt = utf8_3_tail_cnt;
+    if (utf8_3(octet)) {
+      utf8_3_start(state, octet);
       continue;
     }
-    if ((octet & utf8_4_mask) == utf8_4_tag) {
-      state->char_number = octet & utf8_4_payload;
-      state->octet_len = utf8_4_octet_len;
-      state->remaining_octet_cnt = utf8_4_tail_cnt;
+    if (utf8_4(octet)) {
+      utf8_4_start(state, octet);
       continue;
     }
-
-    state->illegal = true;
-    return false;
+    return reject(state);
   }
   return true;
 }
