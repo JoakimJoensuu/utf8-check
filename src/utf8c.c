@@ -73,6 +73,8 @@ enum utf16_surrogate : uint32_t {
 
 static bool character_ok(uint32_t const *character, size_t octet_len) {
   switch (octet_len) {
+  case utf8_1_octet_len:
+    return *character >= utf8_1_min && *character <= utf8_1_max;
   case utf8_2_octet_len:
     return *character >= utf8_2_min && *character <= utf8_2_max;
   case utf8_3_octet_len:
@@ -109,6 +111,15 @@ static bool feed_following(struct utf8c *state, uint8_t octet) {
 static bool feed_initial(struct utf8c *state, uint8_t octet) {
   switch (stdc_leading_ones(octet)) {
   case utf8_1_initial_octet_leading_ones:
+    state->character = (uint32_t)octet & utf8_1_initial_payload_mask;
+    state->octet_len = utf8_1_octet_len;
+    state->remaining_octet_cnt = utf8_1_following_cnt;
+    if (!character_ok(&state->character, state->octet_len)) {
+      state->illegal = true;
+      return false;
+    }
+    state->character = 0;
+    state->octet_len = 0;
     return true;
   case utf8_2_initial_octet_leading_ones:
     state->character = (uint32_t)octet & utf8_2_initial_payload_mask;
