@@ -6,13 +6,10 @@
 #include <stdint.h>
 
 /**
- * Incremental well-formed UTF-8 (RFC 3629 §3) checker.
+ * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
  */
 struct utf8c {
-  uint32_t character;
-  size_t remaining_octet_cnt;
-  size_t octet_len;
-  bool illegal;
+  uint32_t bits;
 };
 
 struct utf8c utf8c_init();
