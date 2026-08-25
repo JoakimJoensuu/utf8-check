@@ -81,30 +81,32 @@ static const struct form four_byte_f4 = {
     .first_cont_max = 0x8F,
 };
 
-static const struct form *form_for(uint8_t octet) {
+static const struct form *form_for(uint8_t lead_octet) {
   const struct form *form = nullptr;
-  if (octet < cont_min)
+  if (lead_octet < cont_min)
     form = &ascii;
-  else if (octet >= two_min && octet <= two_max)
+  else if (lead_octet >= two_min && lead_octet <= two_max)
     form = &two_byte;
-  else if (octet == lead_e0)
+  else if (lead_octet == lead_e0)
     form = &three_byte_e0;
-  else if (octet >= three_min && octet <= three_max)
+  else if (lead_octet >= three_min && lead_octet <= three_max)
     form = &three_byte;
-  else if (octet == lead_ed)
+  else if (lead_octet == lead_ed)
     form = &three_byte_ed;
-  else if (octet >= lead_ee && octet <= lead_ef)
+  else if (lead_octet >= lead_ee && lead_octet <= lead_ef)
     form = &three_byte_high;
-  else if (octet == lead_f0)
+  else if (lead_octet == lead_f0)
     form = &four_byte_f0;
-  else if (octet >= four_min && octet <= four_max)
+  else if (lead_octet >= four_min && lead_octet <= four_max)
     form = &four_byte;
-  else if (octet == lead_f4)
+  else if (lead_octet == lead_f4)
     form = &four_byte_f4;
   return form;
 }
 
-struct utf8c utf8c_init() { return (struct utf8c){}; }
+struct utf8c utf8c_init() {
+  return (struct utf8c){};
+}
 
 bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (state == nullptr) abort();
