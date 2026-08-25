@@ -19,12 +19,15 @@ enum utf8_tail_octet : uint8_t {
 };
 
 enum utf8_char_number : uint32_t {
-  utf8_2_min    = 0b00000000'00000000'00000000'10000000,
-  utf8_3_min    = 0b00000000'00000000'00001000'00000000,
-  surrogate_min = 0b00000000'00000000'11011000'00000000,
-  surrogate_max = 0b00000000'00000000'11011111'11111111,
-  utf8_4_min    = 0b00000000'00000001'00000000'00000000,
-  utf8_4_max    = 0b00000000'00010000'11111111'11111111,
+  utf8_2_min = 0b00000000'00000000'00000000'10000000,
+  utf8_3_min = 0b00000000'00000000'00001000'00000000,
+  utf8_4_min = 0b00000000'00000001'00000000'00000000,
+  utf8_4_max = 0b00000000'00010000'11111111'11111111,
+};
+
+enum utf16_surrogate : uint32_t {
+  utf16_surrogate_min = 0b00000000'00000000'11011000'00000000,
+  utf16_surrogate_max = 0b00000000'00000000'11011111'11111111,
 };
 
 enum utf8_lead_octet_len : uint8_t {
@@ -45,7 +48,7 @@ static bool char_number_ok(const struct utf8c *state) {
     return state->char_number >= utf8_2_min;
   case utf8_3_octet_len:
     return state->char_number >= utf8_3_min &&
-           (state->char_number < surrogate_min || state->char_number > surrogate_max);
+           (state->char_number < utf16_surrogate_min || state->char_number > utf16_surrogate_max);
   case utf8_4_octet_len:
     return state->char_number >= utf8_4_min && state->char_number <= utf8_4_max;
   default:
@@ -96,10 +99,6 @@ static bool feed_lead(struct utf8c *state, uint8_t octet) {
   }
 }
 
-struct utf8c utf8c_init() {
-  return (struct utf8c){};
-}
-
 bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (state == nullptr) abort();
   if (length != 0 && src == nullptr) abort();
@@ -114,6 +113,10 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
     }
   }
   return true;
+}
+
+struct utf8c utf8c_init() {
+  return (struct utf8c){};
 }
 
 bool utf8c_finish(const struct utf8c *state) {
