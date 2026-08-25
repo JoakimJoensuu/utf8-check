@@ -10,8 +10,8 @@
  */
 struct utf8c {
   uint32_t character;
-  uint8_t remaining_octet_cnt;
-  uint8_t octet_len;
+  size_t remaining_octet_cnt;
+  size_t octet_len;
   bool illegal;
 };
 
