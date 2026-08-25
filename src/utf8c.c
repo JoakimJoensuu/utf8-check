@@ -53,22 +53,22 @@ static bool char_number_ok(const struct utf8c *state) {
   }
 }
 
-static bool feed_lead(struct utf8c *state, uint32_t octet) {
-  switch (stdc_leading_ones((uint8_t)octet)) {
+static bool feed_lead(struct utf8c *state, uint8_t octet) {
+  switch (stdc_leading_ones(octet)) {
   case 0:
     return true;
   case 2:
-    state->char_number = octet & utf8_2_payload_mask;
+    state->char_number = (uint32_t)octet & utf8_2_payload_mask;
     state->octet_len = utf8_2_octet_len;
     state->remaining_octet_cnt = utf8_2_tail_cnt;
     return true;
   case 3:
-    state->char_number = octet & utf8_3_payload_mask;
+    state->char_number = (uint32_t)octet & utf8_3_payload_mask;
     state->octet_len = utf8_3_octet_len;
     state->remaining_octet_cnt = utf8_3_tail_cnt;
     return true;
   case 4:
-    state->char_number = octet & utf8_4_payload_mask;
+    state->char_number = (uint32_t)octet & utf8_4_payload_mask;
     state->octet_len = utf8_4_octet_len;
     state->remaining_octet_cnt = utf8_4_tail_cnt;
     return true;
@@ -78,13 +78,13 @@ static bool feed_lead(struct utf8c *state, uint32_t octet) {
   }
 }
 
-static bool feed_tail(struct utf8c *state, uint32_t octet) {
+static bool feed_tail(struct utf8c *state, uint8_t octet) {
   if ((octet & utf8_tail_mask) != utf8_tail) {
     state->illegal = true;
     return false;
   }
   state->char_number <<= utf8_tail_bit_cnt;
-  state->char_number |= octet & utf8_tail_payload_mask;
+  state->char_number |= (uint32_t)octet & utf8_tail_payload_mask;
   state->remaining_octet_cnt--;
   if (state->remaining_octet_cnt != 0) return true;
   if (!char_number_ok(state)) {
@@ -106,12 +106,11 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (state->illegal) return false;
   if (length == 0) return true;
 
-  for (const uint8_t *cursor = src; cursor < src + length; cursor++) {
-    uint32_t const octet = *cursor;
+  for (const uint8_t *octet = src; octet < src + length; octet++) {
     if (state->remaining_octet_cnt == 0) {
-      if (!feed_lead(state, octet)) return false;
+      if (!feed_lead(state, *octet)) return false;
     } else {
-      if (!feed_tail(state, octet)) return false;
+      if (!feed_tail(state, *octet)) return false;
     }
   }
   return true;
