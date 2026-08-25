@@ -4,10 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-enum : uint8_t {
+enum lead_octet : uint8_t {
   ascii_max_lead_octet = 0x7F,
-  cont_min = 0x80,
-  cont_max = 0xBF,
   two_min_lead_octet = 0xC2,
   two_max_lead_octet = 0xDF,
   lead_e0 = 0xE0,
@@ -20,6 +18,11 @@ enum : uint8_t {
   four_min_lead_octet = 0xF1,
   four_max_lead_octet = 0xF3,
   lead_f4 = 0xF4,
+};
+
+enum cont_octet : uint8_t {
+  cont_min = 0x80,
+  cont_max = 0xBF,
 };
 
 struct form {
