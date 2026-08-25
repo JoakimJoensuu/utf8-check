@@ -4,101 +4,103 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-enum : uint8_t { cont_min = 0x80, cont_max = 0xBF };
+enum : uint8_t {
+  cont_min = 0x80,
+  cont_max = 0xBF,
+  two_min = 0xC2,
+  two_max = 0xDF,
+  lead_e0 = 0xE0,
+  three_min = 0xE1,
+  three_max = 0xEC,
+  lead_ed = 0xED,
+  lead_ee = 0xEE,
+  lead_ef = 0xEF,
+  lead_f0 = 0xF0,
+  four_min = 0xF1,
+  four_max = 0xF3,
+  lead_f4 = 0xF4,
+};
 
-struct seq {
-  uint8_t lead_min;
-  uint8_t lead_max;
+struct form {
   uint8_t cont_cnt;
   uint8_t first_cont_min;
   uint8_t first_cont_max;
 };
 
-static const struct seq ascii = {
-    .lead_min = 0x00,
-    .lead_max = 0x7F,
+static const struct form ascii = {
     .cont_cnt = 0,
     .first_cont_min = 0x00,
     .first_cont_max = 0x00,
 };
 
-static const struct seq two_byte = {
-    .lead_min = 0xC2,
-    .lead_max = 0xDF,
+static const struct form two_byte = {
     .cont_cnt = 1,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
 
-static const struct seq three_byte_e0 = {
-    .lead_min = 0xE0,
-    .lead_max = 0xE0,
+static const struct form three_byte_e0 = {
     .cont_cnt = 2,
     .first_cont_min = 0xA0,
     .first_cont_max = cont_max,
 };
 
-static const struct seq three_byte = {
-    .lead_min = 0xE1,
-    .lead_max = 0xEC,
+static const struct form three_byte = {
     .cont_cnt = 2,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
 
-static const struct seq three_byte_ed = {
-    .lead_min = 0xED,
-    .lead_max = 0xED,
+static const struct form three_byte_ed = {
     .cont_cnt = 2,
     .first_cont_min = cont_min,
     .first_cont_max = 0x9F,
 };
 
-static const struct seq three_byte_high = {
-    .lead_min = 0xEE,
-    .lead_max = 0xEF,
+static const struct form three_byte_high = {
     .cont_cnt = 2,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
 
-static const struct seq four_byte_f0 = {
-    .lead_min = 0xF0,
-    .lead_max = 0xF0,
+static const struct form four_byte_f0 = {
     .cont_cnt = 3,
     .first_cont_min = 0x90,
     .first_cont_max = cont_max,
 };
 
-static const struct seq four_byte = {
-    .lead_min = 0xF1,
-    .lead_max = 0xF3,
+static const struct form four_byte = {
     .cont_cnt = 3,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
 
-static const struct seq four_byte_f4 = {
-    .lead_min = 0xF4,
-    .lead_max = 0xF4,
+static const struct form four_byte_f4 = {
     .cont_cnt = 3,
     .first_cont_min = cont_min,
     .first_cont_max = 0x8F,
 };
 
-static const struct seq *const seqs[] = {
-    &ascii,           &two_byte,     &three_byte_e0, &three_byte,   &three_byte_ed,
-    &three_byte_high, &four_byte_f0, &four_byte,     &four_byte_f4,
-};
-
-static const size_t seq_cnt = sizeof seqs / sizeof seqs[0];
-
-static const struct seq *seq_for(uint8_t octet) {
-  for (size_t i = 0; i < seq_cnt; i++) {
-    const struct seq *seq = seqs[i];
-    if (octet >= seq->lead_min && octet <= seq->lead_max) return seq;
+static const struct form *form_for(uint8_t octet) {
+  switch (octet) {
+  case lead_e0:
+    return &three_byte_e0;
+  case lead_ed:
+    return &three_byte_ed;
+  case lead_ee:
+  case lead_ef:
+    return &three_byte_high;
+  case lead_f0:
+    return &four_byte_f0;
+  case lead_f4:
+    return &four_byte_f4;
+  default:
+    if (octet < cont_min) return &ascii;
+    if (octet >= two_min && octet <= two_max) return &two_byte;
+    if (octet >= three_min && octet <= three_max) return &three_byte;
+    if (octet >= four_min && octet <= four_max) return &four_byte;
+    return nullptr;
   }
-  return nullptr;
 }
 
 struct utf8c utf8c_init() { return (struct utf8c){}; }
@@ -111,14 +113,14 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
 
   for (const uint8_t *octet = src; octet < src + length; octet++) {
     if (state->remaining_octet_cnt == 0) {
-      const struct seq *seq = seq_for(*octet);
-      if (seq == nullptr) {
+      const struct form *form = form_for(*octet);
+      if (form == nullptr) {
         state->illegal = true;
         return false;
       }
-      state->remaining_octet_cnt = seq->cont_cnt;
-      state->next_octet_min = seq->first_cont_min;
-      state->next_octet_max = seq->first_cont_max;
+      state->remaining_octet_cnt = form->cont_cnt;
+      state->next_octet_min = form->first_cont_min;
+      state->next_octet_max = form->first_cont_max;
       continue;
     }
 
