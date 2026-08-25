@@ -37,15 +37,15 @@ enum : uint8_t {
   utf8_tail_bit_cnt = 6,
 };
 
-static bool char_number_ok(uint32_t char_number, uint8_t octet_len) {
-  switch (octet_len) {
+static bool char_number_ok(const struct utf8c *state) {
+  switch (state->octet_len) {
   case utf8_2_octet_len:
-    return char_number >= utf8_2_min;
+    return state->char_number >= utf8_2_min;
   case utf8_3_octet_len:
-    return char_number >= utf8_3_min &&
-           (char_number < surrogate_min || char_number > surrogate_max);
+    return state->char_number >= utf8_3_min &&
+           (state->char_number < surrogate_min || state->char_number > surrogate_max);
   case utf8_4_octet_len:
-    return char_number >= utf8_4_min && char_number <= utf8_4_max;
+    return state->char_number >= utf8_4_min && state->char_number <= utf8_4_max;
   default:
     abort();
   }
@@ -72,7 +72,7 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
       state->char_number |= octet & utf8_tail_payload;
       state->remaining_octet_cnt--;
       if (state->remaining_octet_cnt != 0) continue;
-      if (!char_number_ok(state->char_number, state->octet_len)) {
+      if (!char_number_ok(state)) {
         state->illegal = true;
         return false;
       }
