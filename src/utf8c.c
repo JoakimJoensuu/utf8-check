@@ -71,20 +71,6 @@ enum utf16_surrogate : uint32_t {
   utf16_surrogate_max = 0b00000000'00000000'11011111'11111111,
 };
 
-static bool character_ok(uint32_t character, size_t octet_len) {
-  switch (octet_len) {
-  case utf8_2_octet_len:
-    return character >= utf8_2_min && character <= utf8_2_max;
-  case utf8_3_octet_len:
-    return character >= utf8_3_min && character <= utf8_3_max &&
-           (character < utf16_surrogate_min || character > utf16_surrogate_max);
-  case utf8_4_octet_len:
-    return character >= utf8_4_min && character <= utf8_4_max;
-  default:
-    abort();
-  }
-}
-
 static bool feed_following(struct utf8c *state, uint8_t octet) {
   if ((octet & utf8_following_high_order_bit_mask) != utf8_following_high_order_bits) {
     state->illegal = true;
@@ -94,9 +80,28 @@ static bool feed_following(struct utf8c *state, uint8_t octet) {
   state->character |= (uint32_t)octet & utf8_following_payload_mask;
   state->remaining_octet_cnt--;
   if (state->remaining_octet_cnt != 0) return true;
-  if (!character_ok(state->character, state->octet_len)) {
-    state->illegal = true;
-    return false;
+  switch (state->octet_len) {
+  case utf8_2_octet_len:
+    if (state->character < utf8_2_min || state->character > utf8_2_max) {
+      state->illegal = true;
+      return false;
+    }
+    break;
+  case utf8_3_octet_len:
+    if (state->character < utf8_3_min || state->character > utf8_3_max ||
+        (state->character >= utf16_surrogate_min && state->character <= utf16_surrogate_max)) {
+      state->illegal = true;
+      return false;
+    }
+    break;
+  case utf8_4_octet_len:
+    if (state->character < utf8_4_min || state->character > utf8_4_max) {
+      state->illegal = true;
+      return false;
+    }
+    break;
+  default:
+    abort();
   }
   state->character = 0;
   state->octet_len = 0;
