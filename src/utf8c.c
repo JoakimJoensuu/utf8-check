@@ -4,108 +4,51 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-enum lead_octet : uint8_t {
-  ascii_max_lead_octet = 0x7F,
-  two_min_lead_octet = 0xC2,
-  two_max_lead_octet = 0xDF,
-  lead_e0 = 0xE0,
-  three_min_lead_octet = 0xE1,
-  three_max_lead_octet = 0xEC,
-  lead_ed = 0xED,
-  lead_ee = 0xEE,
-  lead_ef = 0xEF,
-  lead_f0 = 0xF0,
-  four_min_lead_octet = 0xF1,
-  four_max_lead_octet = 0xF3,
-  lead_f4 = 0xF4,
+enum : uint32_t {
+  utf8_1_mask = 0x80,
+  utf8_1_tag = 0x00,
+  utf8_2_mask = 0xE0,
+  utf8_2_tag = 0xC0,
+  utf8_2_payload = 0x1F,
+  utf8_3_mask = 0xF0,
+  utf8_3_tag = 0xE0,
+  utf8_3_payload = 0x0F,
+  utf8_4_mask = 0xF8,
+  utf8_4_tag = 0xF0,
+  utf8_4_payload = 0x07,
+  utf8_tail_mask = 0xC0,
+  utf8_tail_tag = 0x80,
+  utf8_tail_payload = 0x3F,
+  utf8_2_min = 0x80,
+  utf8_3_min = 0x800,
+  surrogate_min = 0xD800,
+  surrogate_max = 0xDFFF,
+  utf8_4_min = 0x10000,
+  utf8_4_max = 0x10FFFF,
 };
 
-enum cont_octet : uint8_t {
-  cont_min = 0x80,
-  cont_max = 0xBF,
+enum : uint8_t {
+  utf8_2_octet_len = 2,
+  utf8_3_octet_len = 3,
+  utf8_4_octet_len = 4,
+  utf8_2_tail_cnt = 1,
+  utf8_3_tail_cnt = 2,
+  utf8_4_tail_cnt = 3,
+  utf8_tail_bit_cnt = 6,
 };
 
-struct form {
-  uint8_t cont_cnt;
-  uint8_t first_cont_min;
-  uint8_t first_cont_max;
-};
-
-static const struct form ascii = {
-    .cont_cnt = 0,
-    .first_cont_min = 0x00,
-    .first_cont_max = 0x00,
-};
-
-static const struct form two_byte = {
-    .cont_cnt = 1,
-    .first_cont_min = cont_min,
-    .first_cont_max = cont_max,
-};
-
-static const struct form three_byte_e0 = {
-    .cont_cnt = 2,
-    .first_cont_min = 0xA0,
-    .first_cont_max = cont_max,
-};
-
-static const struct form three_byte = {
-    .cont_cnt = 2,
-    .first_cont_min = cont_min,
-    .first_cont_max = cont_max,
-};
-
-static const struct form three_byte_ed = {
-    .cont_cnt = 2,
-    .first_cont_min = cont_min,
-    .first_cont_max = 0x9F,
-};
-
-static const struct form three_byte_high = {
-    .cont_cnt = 2,
-    .first_cont_min = cont_min,
-    .first_cont_max = cont_max,
-};
-
-static const struct form four_byte_f0 = {
-    .cont_cnt = 3,
-    .first_cont_min = 0x90,
-    .first_cont_max = cont_max,
-};
-
-static const struct form four_byte = {
-    .cont_cnt = 3,
-    .first_cont_min = cont_min,
-    .first_cont_max = cont_max,
-};
-
-static const struct form four_byte_f4 = {
-    .cont_cnt = 3,
-    .first_cont_min = cont_min,
-    .first_cont_max = 0x8F,
-};
-
-static const struct form *form_for(uint8_t lead_octet) {
-  const struct form *form = nullptr;
-  if (lead_octet <= ascii_max_lead_octet)
-    form = &ascii;
-  else if (lead_octet >= two_min_lead_octet && lead_octet <= two_max_lead_octet)
-    form = &two_byte;
-  else if (lead_octet == lead_e0)
-    form = &three_byte_e0;
-  else if (lead_octet >= three_min_lead_octet && lead_octet <= three_max_lead_octet)
-    form = &three_byte;
-  else if (lead_octet == lead_ed)
-    form = &three_byte_ed;
-  else if (lead_octet >= lead_ee && lead_octet <= lead_ef)
-    form = &three_byte_high;
-  else if (lead_octet == lead_f0)
-    form = &four_byte_f0;
-  else if (lead_octet >= four_min_lead_octet && lead_octet <= four_max_lead_octet)
-    form = &four_byte;
-  else if (lead_octet == lead_f4)
-    form = &four_byte_f4;
-  return form;
+static bool char_number_ok(uint32_t char_number, uint8_t octet_len) {
+  switch (octet_len) {
+  case utf8_2_octet_len:
+    return char_number >= utf8_2_min;
+  case utf8_3_octet_len:
+    return char_number >= utf8_3_min &&
+           (char_number < surrogate_min || char_number > surrogate_max);
+  case utf8_4_octet_len:
+    return char_number >= utf8_4_min && char_number <= utf8_4_max;
+  default:
+    abort();
+  }
 }
 
 struct utf8c utf8c_init() {
@@ -118,27 +61,49 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
   if (state->illegal) return false;
   if (length == 0) return true;
 
-  for (const uint8_t *octet = src; octet < src + length; octet++) {
-    if (state->remaining_octet_cnt == 0) {
-      const struct form *form = form_for(*octet);
-      if (form == nullptr) {
+  for (const uint8_t *cursor = src; cursor < src + length; cursor++) {
+    uint32_t const octet = *cursor;
+    if (state->remaining_octet_cnt != 0) {
+      if ((octet & utf8_tail_mask) != utf8_tail_tag) {
         state->illegal = true;
         return false;
       }
-      state->remaining_octet_cnt = form->cont_cnt;
-      state->next_octet_min = form->first_cont_min;
-      state->next_octet_max = form->first_cont_max;
+      state->char_number <<= utf8_tail_bit_cnt;
+      state->char_number |= octet & utf8_tail_payload;
+      state->remaining_octet_cnt--;
+      if (state->remaining_octet_cnt != 0) continue;
+      if (!char_number_ok(state->char_number, state->octet_len)) {
+        state->illegal = true;
+        return false;
+      }
+      state->char_number = 0;
+      state->octet_len = 0;
       continue;
     }
 
-    if (*octet < state->next_octet_min || *octet > state->next_octet_max) {
-      state->illegal = true;
-      return false;
+    if ((octet & utf8_1_mask) == utf8_1_tag) continue;
+
+    if ((octet & utf8_2_mask) == utf8_2_tag) {
+      state->char_number = octet & utf8_2_payload;
+      state->octet_len = utf8_2_octet_len;
+      state->remaining_octet_cnt = utf8_2_tail_cnt;
+      continue;
     }
-    state->remaining_octet_cnt--;
-    if (state->remaining_octet_cnt == 0) continue;
-    state->next_octet_min = cont_min;
-    state->next_octet_max = cont_max;
+    if ((octet & utf8_3_mask) == utf8_3_tag) {
+      state->char_number = octet & utf8_3_payload;
+      state->octet_len = utf8_3_octet_len;
+      state->remaining_octet_cnt = utf8_3_tail_cnt;
+      continue;
+    }
+    if ((octet & utf8_4_mask) == utf8_4_tag) {
+      state->char_number = octet & utf8_4_payload;
+      state->octet_len = utf8_4_octet_len;
+      state->remaining_octet_cnt = utf8_4_tail_cnt;
+      continue;
+    }
+
+    state->illegal = true;
+    return false;
   }
   return true;
 }

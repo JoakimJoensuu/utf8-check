@@ -9,9 +9,9 @@
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker.
  */
 struct utf8c {
+  uint32_t char_number;
   uint8_t remaining_octet_cnt;
-  uint8_t next_octet_min;
-  uint8_t next_octet_max;
+  uint8_t octet_len;
   bool illegal;
 };
 
