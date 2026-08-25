@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-enum : uint32_t {
+enum : uint8_t {
   utf8_1_mask = 0b10000000,
   utf8_1_tag = 0b00000000,
   utf8_2_mask = 0b11100000,
@@ -22,12 +22,12 @@ enum : uint32_t {
 };
 
 enum : uint32_t {
-  utf8_2_min = 0x80,
-  utf8_3_min = 0x800,
-  surrogate_min = 0xD800,
-  surrogate_max = 0xDFFF,
-  utf8_4_min = 0x10000,
-  utf8_4_max = 0x10FFFF,
+  utf8_2_min = 0b10000000,
+  utf8_3_min = 0b100000000000,
+  surrogate_min = 0b1101100000000000,
+  surrogate_max = 0b1101111111111111,
+  utf8_4_min = 0b10000000000000000,
+  utf8_4_max = 0b100001111111111111111,
 };
 
 enum : uint8_t {
