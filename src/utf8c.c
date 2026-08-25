@@ -40,26 +40,6 @@ enum : uint8_t {
   utf8_tail_bit_cnt = 6,
 };
 
-static bool utf8_1(uint32_t octet) {
-  return (octet & utf8_1_mask) == utf8_1_tag;
-}
-
-static bool utf8_2(uint32_t octet) {
-  return (octet & utf8_2_mask) == utf8_2_tag;
-}
-
-static bool utf8_3(uint32_t octet) {
-  return (octet & utf8_3_mask) == utf8_3_tag;
-}
-
-static bool utf8_4(uint32_t octet) {
-  return (octet & utf8_4_mask) == utf8_4_tag;
-}
-
-static bool utf8_tail(uint32_t octet) {
-  return (octet & utf8_tail_mask) == utf8_tail_tag;
-}
-
 static bool char_number_ok(const struct utf8c *state) {
   switch (state->octet_len) {
   case utf8_2_octet_len:
@@ -98,16 +78,16 @@ static void utf8_4_start(struct utf8c *state, uint32_t octet) {
 }
 
 static bool feed_lead(struct utf8c *state, uint32_t octet) {
-  if (utf8_1(octet)) return true;
-  if (utf8_2(octet)) {
+  if ((octet & utf8_1_mask) == utf8_1_tag) return true;
+  if ((octet & utf8_2_mask) == utf8_2_tag) {
     utf8_2_start(state, octet);
     return true;
   }
-  if (utf8_3(octet)) {
+  if ((octet & utf8_3_mask) == utf8_3_tag) {
     utf8_3_start(state, octet);
     return true;
   }
-  if (utf8_4(octet)) {
+  if ((octet & utf8_4_mask) == utf8_4_tag) {
     utf8_4_start(state, octet);
     return true;
   }
@@ -115,7 +95,7 @@ static bool feed_lead(struct utf8c *state, uint32_t octet) {
 }
 
 static bool feed_tail(struct utf8c *state, uint32_t octet) {
-  if (!utf8_tail(octet)) return reject(state);
+  if ((octet & utf8_tail_mask) != utf8_tail_tag) return reject(state);
   state->char_number <<= utf8_tail_bit_cnt;
   state->char_number |= octet & utf8_tail_payload;
   state->remaining_octet_cnt--;
