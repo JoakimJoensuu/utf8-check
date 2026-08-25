@@ -63,9 +63,9 @@ Ensure(split) {
 }
 
 Ensure(unfinished) {
-  static const uint8_t lead[] = {0xC2};
+  static const uint8_t initial[] = {0xC2};
   struct utf8c state = utf8c_init();
-  assert_that(utf8c_feed(&state, lead, sizeof lead), is_true);
+  assert_that(utf8c_feed(&state, initial, sizeof initial), is_true);
   assert_that(utf8c_finish(&state), is_false);
 }
 
@@ -89,9 +89,9 @@ Ensure(surrogate) {
 
 Ensure(too_big) {
   static const uint8_t u110000[] = {0xF4, 0x90, 0x80, 0x80};
-  static const uint8_t lead_f5[] = {0xF5, 0x80, 0x80, 0x80};
+  static const uint8_t initial_f5[] = {0xF5, 0x80, 0x80, 0x80};
   assert_that(well_formed(u110000, sizeof u110000), is_false);
-  assert_that(well_formed(lead_f5, sizeof lead_f5), is_false);
+  assert_that(well_formed(initial_f5, sizeof initial_f5), is_false);
 }
 
 Ensure(truncated) {
