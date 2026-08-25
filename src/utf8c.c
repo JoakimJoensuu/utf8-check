@@ -59,36 +59,24 @@ static bool reject(struct utf8c *state) {
   return false;
 }
 
-static void utf8_2_start(struct utf8c *state, uint32_t octet) {
-  state->char_number = octet & utf8_2_payload;
-  state->octet_len = utf8_2_octet_len;
-  state->remaining_octet_cnt = utf8_2_tail_cnt;
-}
-
-static void utf8_3_start(struct utf8c *state, uint32_t octet) {
-  state->char_number = octet & utf8_3_payload;
-  state->octet_len = utf8_3_octet_len;
-  state->remaining_octet_cnt = utf8_3_tail_cnt;
-}
-
-static void utf8_4_start(struct utf8c *state, uint32_t octet) {
-  state->char_number = octet & utf8_4_payload;
-  state->octet_len = utf8_4_octet_len;
-  state->remaining_octet_cnt = utf8_4_tail_cnt;
-}
-
 static bool feed_lead(struct utf8c *state, uint32_t octet) {
   if ((octet & utf8_1_mask) == utf8_1_tag) return true;
   if ((octet & utf8_2_mask) == utf8_2_tag) {
-    utf8_2_start(state, octet);
+    state->char_number = octet & utf8_2_payload;
+    state->octet_len = utf8_2_octet_len;
+    state->remaining_octet_cnt = utf8_2_tail_cnt;
     return true;
   }
   if ((octet & utf8_3_mask) == utf8_3_tag) {
-    utf8_3_start(state, octet);
+    state->char_number = octet & utf8_3_payload;
+    state->octet_len = utf8_3_octet_len;
+    state->remaining_octet_cnt = utf8_3_tail_cnt;
     return true;
   }
   if ((octet & utf8_4_mask) == utf8_4_tag) {
-    utf8_4_start(state, octet);
+    state->char_number = octet & utf8_4_payload;
+    state->octet_len = utf8_4_octet_len;
+    state->remaining_octet_cnt = utf8_4_tail_cnt;
     return true;
   }
   return reject(state);
