@@ -9,10 +9,10 @@
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker.
  */
 struct utf8c {
-  uint8_t rest_cnt; /**< Remaining continuation bytes. 0 means expecting a lead. */
-  uint8_t next_min; /**< Inclusive lower bound for the next byte. */
-  uint8_t next_max; /**< Inclusive upper bound for the next byte. */
-  bool illegal;     /**< Sticky: a previous byte was not well-formed. */
+  uint8_t rest_cont_cnt;
+  uint8_t next_byte_min;
+  uint8_t next_byte_max;
+  bool illegal;
 };
 
 struct utf8c utf8c_init();
