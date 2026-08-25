@@ -9,7 +9,7 @@ enum : uint8_t { cont_min = 0x80, cont_max = 0xBF };
 struct lead {
   uint8_t lead_min;
   uint8_t lead_max;
-  uint8_t rest_cont_cnt;
+  uint8_t cont_cnt;
   uint8_t first_cont_min;
   uint8_t first_cont_max;
 };
@@ -17,7 +17,7 @@ struct lead {
 static const struct lead ascii = {
     .lead_min = 0x00,
     .lead_max = 0x7F,
-    .rest_cont_cnt = 0,
+    .cont_cnt = 0,
     .first_cont_min = 0x00,
     .first_cont_max = 0x00,
 };
@@ -25,7 +25,7 @@ static const struct lead ascii = {
 static const struct lead two_byte = {
     .lead_min = 0xC2,
     .lead_max = 0xDF,
-    .rest_cont_cnt = 1,
+    .cont_cnt = 1,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
@@ -33,7 +33,7 @@ static const struct lead two_byte = {
 static const struct lead three_byte_e0 = {
     .lead_min = 0xE0,
     .lead_max = 0xE0,
-    .rest_cont_cnt = 2,
+    .cont_cnt = 2,
     .first_cont_min = 0xA0,
     .first_cont_max = cont_max,
 };
@@ -41,7 +41,7 @@ static const struct lead three_byte_e0 = {
 static const struct lead three_byte = {
     .lead_min = 0xE1,
     .lead_max = 0xEC,
-    .rest_cont_cnt = 2,
+    .cont_cnt = 2,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
@@ -49,7 +49,7 @@ static const struct lead three_byte = {
 static const struct lead three_byte_ed = {
     .lead_min = 0xED,
     .lead_max = 0xED,
-    .rest_cont_cnt = 2,
+    .cont_cnt = 2,
     .first_cont_min = cont_min,
     .first_cont_max = 0x9F,
 };
@@ -57,7 +57,7 @@ static const struct lead three_byte_ed = {
 static const struct lead three_byte_high = {
     .lead_min = 0xEE,
     .lead_max = 0xEF,
-    .rest_cont_cnt = 2,
+    .cont_cnt = 2,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
@@ -65,7 +65,7 @@ static const struct lead three_byte_high = {
 static const struct lead four_byte_f0 = {
     .lead_min = 0xF0,
     .lead_max = 0xF0,
-    .rest_cont_cnt = 3,
+    .cont_cnt = 3,
     .first_cont_min = 0x90,
     .first_cont_max = cont_max,
 };
@@ -73,7 +73,7 @@ static const struct lead four_byte_f0 = {
 static const struct lead four_byte = {
     .lead_min = 0xF1,
     .lead_max = 0xF3,
-    .rest_cont_cnt = 3,
+    .cont_cnt = 3,
     .first_cont_min = cont_min,
     .first_cont_max = cont_max,
 };
@@ -81,7 +81,7 @@ static const struct lead four_byte = {
 static const struct lead four_byte_f4 = {
     .lead_min = 0xF4,
     .lead_max = 0xF4,
-    .rest_cont_cnt = 3,
+    .cont_cnt = 3,
     .first_cont_min = cont_min,
     .first_cont_max = 0x8F,
 };
@@ -110,15 +110,15 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
 
   for (size_t i = 0; i < length; i++) {
     uint8_t octet = src[i];
-    if (state->rest_cont_cnt != 0) {
-      if (octet < state->next_byte_min || octet > state->next_byte_max) {
+    if (state->remaining_octet_cnt != 0) {
+      if (octet < state->next_octet_min || octet > state->next_octet_max) {
         state->illegal = true;
         return false;
       }
-      state->rest_cont_cnt--;
-      if (state->rest_cont_cnt != 0) {
-        state->next_byte_min = cont_min;
-        state->next_byte_max = cont_max;
+      state->remaining_octet_cnt--;
+      if (state->remaining_octet_cnt != 0) {
+        state->next_octet_min = cont_min;
+        state->next_octet_max = cont_max;
       }
       continue;
     }
@@ -128,14 +128,14 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
       state->illegal = true;
       return false;
     }
-    state->rest_cont_cnt = lead->rest_cont_cnt;
-    state->next_byte_min = lead->first_cont_min;
-    state->next_byte_max = lead->first_cont_max;
+    state->remaining_octet_cnt = lead->cont_cnt;
+    state->next_octet_min = lead->first_cont_min;
+    state->next_octet_max = lead->first_cont_max;
   }
   return true;
 }
 
 bool utf8c_finish(const struct utf8c *state) {
   if (state == nullptr) abort();
-  return !state->illegal && state->rest_cont_cnt == 0;
+  return !state->illegal && state->remaining_octet_cnt == 0;
 }
