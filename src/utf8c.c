@@ -24,10 +24,10 @@ enum utf8_lead_octet_mask : uint8_t {
 };
 
 enum utf8_tail_octet : uint8_t {
-  utf8_tail_high_order_mask = 0b11000000,
-  utf8_tail_high_order      = 0b10000000,
-  utf8_tail_payload_mask    = 0b00111111,
-  utf8_tail_bit_cnt         = 6,
+  utf8_tail_high_order_bit_mask = 0b11000000,
+  utf8_tail_high_order_bits     = 0b10000000,
+  utf8_tail_payload_mask        = 0b00111111,
+  utf8_tail_bit_cnt             = 6,
 };
 
 enum utf8_character : uint32_t {
@@ -69,7 +69,7 @@ static bool character_ok(const struct utf8c *state) {
 }
 
 static bool feed_tail(struct utf8c *state, uint8_t octet) {
-  if ((octet & utf8_tail_high_order_mask) != utf8_tail_high_order) {
+  if ((octet & utf8_tail_high_order_bit_mask) != utf8_tail_high_order_bits) {
     state->illegal = true;
     return false;
   }
