@@ -41,7 +41,7 @@ enum utf8_octet_len : uint8_t {
   utf8_4_octet_len = 4,
 };
 
-enum utf8_following_octet : uint8_t {
+enum : uint8_t {
   utf8_following_high_order_bit_mask = 0b11000000,
   utf8_following_high_order_bits     = 0b10000000,
   utf8_following_payload_mask        = 0b00111111,
@@ -55,7 +55,7 @@ enum utf8_following_cnt : uint8_t {
   utf8_4_following_cnt = 3,
 };
 
-enum utf8_character_ranges : uint32_t {
+enum : uint32_t {
   utf8_1_min = 0b00000000'00000000'00000000'00000000,
   utf8_1_max = 0b00000000'00000000'00000000'01111111,
   utf8_2_min = 0b00000000'00000000'00000000'10000000,
@@ -66,7 +66,7 @@ enum utf8_character_ranges : uint32_t {
   utf8_4_max = 0b00000000'00010000'11111111'11111111,
 };
 
-enum utf16_surrogate : uint32_t {
+enum : uint32_t {
   utf16_surrogate_min = 0b00000000'00000000'11011000'00000000,
   utf16_surrogate_max = 0b00000000'00000000'11011111'11111111,
 };
