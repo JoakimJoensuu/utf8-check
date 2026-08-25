@@ -15,9 +15,9 @@
  *   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
  *   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
  *   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
- *                            ^        ^        ^        ^
- *                         initial  following following following
- *                          octet     octet     octet     octet
+ *                            ^     +------------------------+
+ *                         initial       following octets
+ *                          octet
  */
 
 enum utf8_initial_octet_mask : uint8_t {
