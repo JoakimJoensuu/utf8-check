@@ -116,10 +116,9 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
         return false;
       }
       state->remaining_octet_cnt--;
-      if (state->remaining_octet_cnt != 0) {
-        state->next_octet_min = cont_min;
-        state->next_octet_max = cont_max;
-      }
+      if (state->remaining_octet_cnt == 0) continue;
+      state->next_octet_min = cont_min;
+      state->next_octet_max = cont_max;
       continue;
     }
 
