@@ -55,7 +55,7 @@ enum utf8_following_cnt : uint8_t {
   utf8_4_following_cnt = 3,
 };
 
-enum utf8_character : uint32_t {
+enum utf8_character_ranges : uint32_t {
   utf8_1_min = 0b00000000'00000000'00000000'00000000,
   utf8_1_max = 0b00000000'00000000'00000000'01111111,
   utf8_2_min = 0b00000000'00000000'00000000'10000000,
