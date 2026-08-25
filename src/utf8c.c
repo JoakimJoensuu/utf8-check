@@ -74,7 +74,7 @@ enum utf16_surrogate : uint32_t {
 static bool character_ok(uint32_t const *character, size_t octet_len) {
   switch (octet_len) {
   case utf8_1_octet_len:
-    return *character >= utf8_1_min && *character <= utf8_1_max;
+    return *character <= utf8_1_max;
   case utf8_2_octet_len:
     return *character >= utf8_2_min && *character <= utf8_2_max;
   case utf8_3_octet_len:
