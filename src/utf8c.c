@@ -48,6 +48,13 @@ enum utf8_lead_octet_len : uint8_t {
   utf8_4_octet_len = 4,
 };
 
+enum utf8_lead_octet_leading_ones : uint8_t {
+  utf8_1_lead_octet_leading_ones = 0,
+  utf8_2_lead_octet_leading_ones = 2,
+  utf8_3_lead_octet_leading_ones = 3,
+  utf8_4_lead_octet_leading_ones = 4,
+};
+
 enum utf8_lead_tail_cnt : uint8_t {
   utf8_2_tail_cnt = 1,
   utf8_3_tail_cnt = 2,
@@ -88,19 +95,19 @@ static bool feed_tail(struct utf8c *state, uint8_t octet) {
 
 static bool feed_lead(struct utf8c *state, uint8_t octet) {
   switch (stdc_leading_ones(octet)) {
-  case 0:
+  case utf8_1_lead_octet_leading_ones:
     return true;
-  case 2:
+  case utf8_2_lead_octet_leading_ones:
     state->character = (uint32_t)octet & utf8_2_lead_payload_mask;
     state->octet_len = utf8_2_octet_len;
     state->remaining_octet_cnt = utf8_2_tail_cnt;
     return true;
-  case 3:
+  case utf8_3_lead_octet_leading_ones:
     state->character = (uint32_t)octet & utf8_3_lead_payload_mask;
     state->octet_len = utf8_3_octet_len;
     state->remaining_octet_cnt = utf8_3_tail_cnt;
     return true;
-  case 4:
+  case utf8_4_lead_octet_leading_ones:
     state->character = (uint32_t)octet & utf8_4_lead_payload_mask;
     state->octet_len = utf8_4_octet_len;
     state->remaining_octet_cnt = utf8_4_tail_cnt;
