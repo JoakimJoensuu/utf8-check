@@ -110,26 +110,26 @@ bool utf8c_feed(struct utf8c *state, const uint8_t *src, size_t length) {
 
   for (size_t i = 0; i < length; i++) {
     uint8_t octet = src[i];
-    if (state->remaining_octet_cnt != 0) {
-      if (octet < state->next_octet_min || octet > state->next_octet_max) {
+    if (state->remaining_octet_cnt == 0) {
+      const struct lead *lead = lead_for(octet);
+      if (lead == nullptr) {
         state->illegal = true;
         return false;
       }
-      state->remaining_octet_cnt--;
-      if (state->remaining_octet_cnt == 0) continue;
-      state->next_octet_min = cont_min;
-      state->next_octet_max = cont_max;
+      state->remaining_octet_cnt = lead->cont_cnt;
+      state->next_octet_min = lead->first_cont_min;
+      state->next_octet_max = lead->first_cont_max;
       continue;
     }
 
-    const struct lead *lead = lead_for(octet);
-    if (lead == nullptr) {
+    if (octet < state->next_octet_min || octet > state->next_octet_max) {
       state->illegal = true;
       return false;
     }
-    state->remaining_octet_cnt = lead->cont_cnt;
-    state->next_octet_min = lead->first_cont_min;
-    state->next_octet_max = lead->first_cont_max;
+    state->remaining_octet_cnt--;
+    if (state->remaining_octet_cnt == 0) continue;
+    state->next_octet_min = cont_min;
+    state->next_octet_max = cont_max;
   }
   return true;
 }
