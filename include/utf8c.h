@@ -5,11 +5,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+enum : size_t {
+  utf8c_opaque_len = sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t) + sizeof(bool) +
+      alignof(uint32_t) + alignof(size_t) + alignof(size_t) + alignof(bool),
+};
+
 /**
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
  */
 struct utf8c {
-  alignas(max_align_t) unsigned char opaque[sizeof(max_align_t) * 4];
+  alignas(uint32_t) alignas(size_t) alignas(bool) unsigned char opaque[utf8c_opaque_len];
 };
 
 struct utf8c utf8c_init();
