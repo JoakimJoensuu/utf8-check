@@ -5,38 +5,38 @@
 #include <stdlib.h>
 
 enum : uint8_t {
-  utf8_1_mask = 0b10000000,
-  utf8_1_tag = 0b00000000,
-  utf8_2_mask = 0b11100000,
-  utf8_2_tag = 0b11000000,
-  utf8_2_payload = 0b00011111,
-  utf8_3_mask = 0b11110000,
-  utf8_3_tag = 0b11100000,
-  utf8_3_payload = 0b00001111,
-  utf8_4_mask = 0b11111000,
-  utf8_4_tag = 0b11110000,
-  utf8_4_payload = 0b00000111,
-  utf8_tail_mask = 0b11000000,
-  utf8_tail_tag = 0b10000000,
+  utf8_1_mask       = 0b10000000,
+  utf8_1_tag        = 0b00000000,
+  utf8_2_mask       = 0b11100000,
+  utf8_2_tag        = 0b11000000,
+  utf8_2_payload    = 0b00011111,
+  utf8_3_mask       = 0b11110000,
+  utf8_3_tag        = 0b11100000,
+  utf8_3_payload    = 0b00001111,
+  utf8_4_mask       = 0b11111000,
+  utf8_4_tag        = 0b11110000,
+  utf8_4_payload    = 0b00000111,
+  utf8_tail_mask    = 0b11000000,
+  utf8_tail_tag     = 0b10000000,
   utf8_tail_payload = 0b00111111,
 };
 
 enum : uint32_t {
-  utf8_2_min = 0b10000000,
-  utf8_3_min = 0b100000000000,
-  surrogate_min = 0b1101100000000000,
-  surrogate_max = 0b1101111111111111,
-  utf8_4_min = 0b10000000000000000,
-  utf8_4_max = 0b100001111111111111111,
+  utf8_2_min    = 0b00000000'00000000'00000000'10000000,
+  utf8_3_min    = 0b00000000'00000000'00001000'00000000,
+  surrogate_min = 0b00000000'00000000'11011000'00000000,
+  surrogate_max = 0b00000000'00000000'11011111'11111111,
+  utf8_4_min    = 0b00000000'00000001'00000000'00000000,
+  utf8_4_max    = 0b00000000'00010000'11111111'11111111,
 };
 
 enum : uint8_t {
-  utf8_2_octet_len = 2,
-  utf8_3_octet_len = 3,
-  utf8_4_octet_len = 4,
-  utf8_2_tail_cnt = 1,
-  utf8_3_tail_cnt = 2,
-  utf8_4_tail_cnt = 3,
+  utf8_2_octet_len  = 2,
+  utf8_3_octet_len  = 3,
+  utf8_4_octet_len  = 4,
+  utf8_2_tail_cnt   = 1,
+  utf8_3_tail_cnt   = 2,
+  utf8_4_tail_cnt   = 3,
   utf8_tail_bit_cnt = 6,
 };
 
