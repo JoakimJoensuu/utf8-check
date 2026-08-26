@@ -9,7 +9,7 @@ set(CGREEN_WITH_LIBXML2 OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   cgreen
   GIT_REPOSITORY https://github.com/cgreen-devs/cgreen.git
-  GIT_TAG 1.6.3
+  GIT_TAG 1.7.0
   GIT_SHALLOW TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS OFF)
 FetchContent_MakeAvailable(cgreen)
