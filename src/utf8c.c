@@ -27,6 +27,13 @@ enum utf8_initial_octet_leading_ones : uint8_t {
   utf8_4_initial_octet_leading_ones = 4,
 };
 
+enum utf8_octet_sequence_len : uint8_t {
+  utf8_1_octet_sequence_len = 1,
+  utf8_2_octet_sequence_len = 2,
+  utf8_3_octet_sequence_len = 3,
+  utf8_4_octet_sequence_len = 4,
+};
+
 enum utf8_initial_octet_mask : uint8_t {
   utf8_1_initial_octet_payload_mask = 0b01111111,
   utf8_2_initial_octet_payload_mask = 0b00011111,
@@ -39,13 +46,6 @@ enum utf8_following_octet_cnt : uint8_t {
   utf8_2_following_octet_cnt = 1,
   utf8_3_following_octet_cnt = 2,
   utf8_4_following_octet_cnt = 3,
-};
-
-enum utf8_octet_sequence_len : uint8_t {
-  utf8_1_octet_sequence_len = 1,
-  utf8_2_octet_sequence_len = 2,
-  utf8_3_octet_sequence_len = 3,
-  utf8_4_octet_sequence_len = 4,
 };
 
 enum : uint8_t {
