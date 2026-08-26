@@ -67,8 +67,8 @@ enum : uint32_t {
 };
 
 enum : uint32_t {
-  utf16_surrogate_min = 0x0000'D800,
-  utf16_surrogate_max = 0x0000'DFFF,
+  surrogate_character_min = 0x0000'D800,
+  surrogate_character_max = 0x0000'DFFF,
 };
 
 struct state {
@@ -89,7 +89,7 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
     return *character >= utf8_2_character_min && *character <= utf8_2_character_max;
   case utf8_3_octet_sequence_len:
     return *character >= utf8_3_character_min && *character <= utf8_3_character_max &&
-           (*character < utf16_surrogate_min || *character > utf16_surrogate_max);
+           (*character < surrogate_character_min || *character > surrogate_character_max);
   case utf8_4_octet_sequence_len:
     return *character >= utf8_4_character_min && *character <= utf8_4_character_max;
   default:
