@@ -56,19 +56,16 @@ enum : uint8_t {
 };
 
 enum : uint32_t {
-  utf8_1_character_min = 0x0000'0000,
-  utf8_1_character_max = 0x0000'007F,
-  utf8_2_character_min = 0x0000'0080,
-  utf8_2_character_max = 0x0000'07FF,
-  utf8_3_character_min = 0x0000'0800,
-  utf8_3_character_max = 0x0000'FFFF,
-  utf8_4_character_min = 0x0001'0000,
-  utf8_4_character_max = 0x0010'FFFF,
-};
-
-enum : uint32_t {
-  surrogate_character_min = 0x0000'D800,
-  surrogate_character_max = 0x0000'DFFF,
+  utf8_1_character_min            = 0x0000'0000,
+  utf8_1_character_max            = 0x0000'007F,
+  utf8_2_character_min            = 0x0000'0080,
+  utf8_2_character_max            = 0x0000'07FF,
+  utf8_3_character_min            = 0x0000'0800,
+  utf8_3_character_max            = 0x0000'FFFF,
+  utf8_3_prohibited_character_min = 0x0000'D800,
+  utf8_3_prohibited_character_max = 0x0000'DFFF,
+  utf8_4_character_min            = 0x0001'0000,
+  utf8_4_character_max            = 0x0010'FFFF,
 };
 
 struct state {
@@ -89,7 +86,8 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
     return *character >= utf8_2_character_min && *character <= utf8_2_character_max;
   case utf8_3_octet_sequence_len:
     return *character >= utf8_3_character_min && *character <= utf8_3_character_max &&
-           (*character < surrogate_character_min || *character > surrogate_character_max);
+           (*character < utf8_3_prohibited_character_min ||
+            *character > utf8_3_prohibited_character_max);
   case utf8_4_octet_sequence_len:
     return *character >= utf8_4_character_min && *character <= utf8_4_character_max;
   default:
