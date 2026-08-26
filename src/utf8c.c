@@ -49,10 +49,10 @@ enum utf8_following_octet_cnt : uint8_t {
 };
 
 enum : uint8_t {
-  utf8_following_octet_high_order_bit_mask = 0b11000000,
-  utf8_following_octet_high_order_bits     = 0b10000000,
-  utf8_following_octet_payload_mask        = 0b00111111,
-  utf8_following_octet_payload_bit_cnt     = 6,
+  utf8_following_octet_high_order_bits_mask = 0b11000000,
+  utf8_following_octet_high_order_bits      = 0b10000000,
+  utf8_following_octet_payload_mask         = 0b00111111,
+  utf8_following_octet_payload_bit_cnt      = 6,
 };
 
 enum : uint32_t {
@@ -103,7 +103,7 @@ static void append_following_payload(struct state *state, uint8_t octet) {
 }
 
 static bool feed_following_octet(struct state *state, uint8_t octet) {
-  if ((octet & utf8_following_octet_high_order_bit_mask) != utf8_following_octet_high_order_bits) {
+  if ((octet & utf8_following_octet_high_order_bits_mask) != utf8_following_octet_high_order_bits) {
     state->illegal = true;
     return false;
   }
