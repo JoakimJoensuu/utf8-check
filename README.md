@@ -14,11 +14,9 @@ Examples and tests are off when this project is not the CMake top level.
 
 ## Style
 
-`--experimental-custom-checks` is required so `CustomChecks` in `.clang-tidy` run.
+`--experimental-custom-checks` is required for `CustomChecks` in `.clang-tidy`.
 
 ```sh
 clang-format-23 --dry-run --Werror $(find include src examples tests -type f -name '*.[ch]' | sort)
 clang-tidy-23 --experimental-custom-checks $(jq -r '.[].file' compile_commands.json)
 ```
-
-Apache-2.0. See `LICENSE`.
