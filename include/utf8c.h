@@ -5,10 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-enum : size_t {
-  utf8c_opaque_len = sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t) + sizeof(bool) +
-      alignof(uint32_t) + alignof(size_t) + alignof(size_t) + alignof(bool),
-};
+static constexpr size_t utf8c_opaque_len = sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t) +
+                                           sizeof(bool) + alignof(uint32_t) + alignof(size_t) +
+                                           alignof(size_t) + alignof(bool);
 
 /**
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
