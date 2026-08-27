@@ -4,21 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-/*
- * RFC 3629 §3:
- *
- *     | Char. number range  |        UTF-8 octet sequence
- *     |    (hexadecimal)    |              (binary)
- *   --+---------------------+---------------------------------------------
- *   1 | 0000 0000-0000 007F | 0xxxxxxx
- *   2 | 0000 0080-0000 07FF | 110xxxxx 10xxxxxx
- *   3 | 0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
- *   4 | 0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
- *                                ^     +------------------------+
- *                             initial       following octets
- *                              octet
- */
+#include <string.h>
 
 enum utf8_initial_octet_leading_ones : uint8_t {
   utf8_1_initial_octet_leading_ones = 0,
@@ -77,6 +63,16 @@ struct state {
 
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
+
+static struct state load_state(const struct utf8c *utf8c) {
+  struct state state;
+  memcpy(&state, utf8c->opaque, sizeof state);
+  return state;
+}
+
+static void store_state(struct utf8c *utf8c, const struct state *state) {
+  memcpy(utf8c->opaque, state, sizeof *state);
+}
 
 static bool is_character_valid(uint32_t const *character, size_t octet_sequence_len) {
   switch (octet_sequence_len) {
@@ -145,21 +141,28 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
   }
 }
 
-bool utf8c_feed(struct utf8c *utf8c, const uint8_t *src, size_t length) {
+bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length) {
   if (utf8c == nullptr) abort();
-  if (length != 0 && src == nullptr) abort();
+  if (length != 0 && octets == nullptr) abort();
 
-  struct state *state = (struct state *)utf8c;
-  if (state->illegal) return false;
+  struct state state = load_state(utf8c);
+  if (state.illegal) return false;
   if (length == 0) return true;
 
-  for (const uint8_t *octet = src; octet < src + length; octet++) {
-    if (state->remaining_octet_cnt == 0) {
-      if (!feed_initial_octet(state, *octet)) return false;
+  for (const uint8_t *octet = octets; octet < octets + length; octet++) {
+    if (state.remaining_octet_cnt == 0) {
+      if (!feed_initial_octet(&state, *octet)) {
+        store_state(utf8c, &state);
+        return false;
+      }
     } else {
-      if (!feed_following_octet(state, *octet)) return false;
+      if (!feed_following_octet(&state, *octet)) {
+        store_state(utf8c, &state);
+        return false;
+      }
     }
   }
+  store_state(utf8c, &state);
   return true;
 }
 
@@ -170,6 +173,6 @@ struct utf8c utf8c_init() {
 bool utf8c_finish(const struct utf8c *utf8c) {
   if (utf8c == nullptr) abort();
 
-  const struct state *state = (const struct state *)utf8c;
-  return !state->illegal && state->remaining_octet_cnt == 0;
+  struct state state = load_state(utf8c);
+  return !state.illegal && state.remaining_octet_cnt == 0;
 }
