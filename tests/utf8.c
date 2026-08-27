@@ -170,5 +170,9 @@ int main() {
   add_test(suite, invalid_initial);
   add_test(suite, mixed);
   add_test(suite, empty_while_incomplete);
-  return run_test_suite(suite, create_text_reporter());
+  auto reporter = create_text_reporter();
+  int result = run_test_suite(suite, reporter);
+  destroy_test_suite(suite);
+  destroy_reporter(reporter);
+  return result;
 }

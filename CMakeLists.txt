@@ -9,9 +9,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(CREATE_LINK "${CMAKE_BINARY_DIR}/compile_commands.json"
      "${CMAKE_SOURCE_DIR}/compile_commands.json" SYMBOLIC COPY_ON_ERROR)
 
-add_library(utf8c_warnings INTERFACE)
+option(UTF8C_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
+option(UTF8C_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+option(UTF8C_SANITIZERS "Instrument with sanitizers" ${PROJECT_IS_TOP_LEVEL})
+
+add_library(utf8c_flags INTERFACE)
 target_compile_options(
-  utf8c_warnings
+  utf8c_flags
   INTERFACE -Wall
             -Wextra
             -Wpedantic
@@ -21,13 +25,14 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
+if(UTF8C_SANITIZERS)
+  target_compile_options(utf8c_flags INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(utf8c_flags INTERFACE -fsanitize=address,undefined)
+endif()
 
 add_library(utf8c src/utf8c.c)
 target_include_directories(utf8c PUBLIC include)
-target_link_libraries(utf8c PRIVATE utf8c_warnings)
-
-option(UTF8C_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
-option(UTF8C_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+target_link_libraries(utf8c PRIVATE utf8c_flags)
 
 if(UTF8C_EXAMPLES)
   add_subdirectory(examples)
