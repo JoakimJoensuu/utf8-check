@@ -2,6 +2,7 @@
 
 #include <cgreen/assertions.h>
 #include <cgreen/constraint_syntax_helpers.h>
+#include <cgreen/reporter.h>
 #include <cgreen/runner.h>
 #include <cgreen/suite.h>
 #include <cgreen/text_reporter.h>
