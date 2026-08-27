@@ -13,19 +13,20 @@ option(UTF8C_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
 option(UTF8C_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(utf8c_flags INTERFACE)
-target_compile_options(
-  utf8c_flags
-  INTERFACE -Wall
-            -Wextra
-            -Wpedantic
-            -Werror
-            -Wconversion
-            -Wformat=2
-            -Wmissing-prototypes
-            -Wshadow
-            -Wstrict-prototypes)
 if(PROJECT_IS_TOP_LEVEL)
-  target_compile_options(utf8c_flags INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_compile_options(
+    utf8c_flags
+    INTERFACE -Wall
+              -Wextra
+              -Wpedantic
+              -Werror
+              -Wconversion
+              -Wformat=2
+              -Wmissing-prototypes
+              -Wshadow
+              -Wstrict-prototypes
+              -fsanitize=address,undefined
+              -fno-omit-frame-pointer)
   target_link_options(utf8c_flags INTERFACE -fsanitize=address,undefined)
 endif()
 
