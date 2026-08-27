@@ -23,10 +23,11 @@ target_compile_options(
             -Wformat=2
             -Wmissing-prototypes
             -Wshadow
-            -Wstrict-prototypes
-            -fsanitize=address,undefined
-            -fno-omit-frame-pointer)
-target_link_options(utf8c_flags INTERFACE -fsanitize=address,undefined)
+            -Wstrict-prototypes)
+if(PROJECT_IS_TOP_LEVEL)
+  target_compile_options(utf8c_flags INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(utf8c_flags INTERFACE -fsanitize=address,undefined)
+endif()
 
 add_library(utf8c src/utf8c.c)
 target_include_directories(utf8c PUBLIC include)
