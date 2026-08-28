@@ -17,7 +17,7 @@ Tools and other files refer to it, or say nothing.
 
 ## Errors
 
-Programming errors do not return, expected failures still return an error.
+Programming errors abort, expected failures still return an error.
 
 ## Names
 
