@@ -1,9 +1,6 @@
 #include "utf8c.h"
 
 #include <stdbit.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 enum utf8_initial_octet_leading_ones : uint8_t {
@@ -64,6 +61,12 @@ struct state {
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
 
+[[noreturn]] static void halt(void) {
+  volatile unsigned char hang = 1;
+  while (hang != 0) {
+  }
+}
+
 static struct state load_state(const struct utf8c *utf8c) {
   struct state state;
   memcpy(&state, utf8c->opaque, sizeof state);
@@ -87,7 +90,7 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
   case utf8_4_octet_sequence_len:
     return *character >= utf8_4_character_min && *character <= utf8_4_character_max;
   default:
-    abort();
+    halt();
   }
 }
 
@@ -142,8 +145,8 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
 }
 
 bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length) {
-  if (utf8c == nullptr) abort();
-  if (length != 0 && octets == nullptr) abort();
+  if (utf8c == nullptr) halt();
+  if (length != 0 && octets == nullptr) halt();
 
   struct state state = load_state(utf8c);
   if (state.illegal) return false;
@@ -171,7 +174,7 @@ struct utf8c utf8c_init() {
 }
 
 bool utf8c_finish(const struct utf8c *utf8c) {
-  if (utf8c == nullptr) abort();
+  if (utf8c == nullptr) halt();
 
   struct state state = load_state(utf8c);
   return !state.illegal && state.remaining_octet_cnt == 0;

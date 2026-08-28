@@ -31,6 +31,7 @@ endif()
 
 add_library(utf8c src/utf8c.c)
 target_include_directories(utf8c PUBLIC include)
+target_compile_options(utf8c PRIVATE -ffreestanding)
 target_link_libraries(utf8c PRIVATE utf8c_flags)
 
 if(UTF8C_EXAMPLES)

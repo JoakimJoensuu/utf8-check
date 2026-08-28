@@ -4,7 +4,7 @@ Do not restate language or protocol standards.
 
 ## Language
 
-ISO C23, hosted. No extensions.
+ISO C23. The library is freestanding. No extensions.
 
 ## Writing
 
@@ -17,7 +17,7 @@ Tools and other files refer to it, or say nothing.
 
 ## Errors
 
-Programming errors abort, expected failures still return an error.
+Programming errors do not return, expected failures still return an error.
 
 ## Names
 
