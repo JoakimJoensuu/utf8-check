@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <string.h>
 
-[[noreturn]] void abort();
-
 enum utf8_initial_octet_leading_ones : uint8_t {
   utf8_1_initial_octet_leading_ones = 0,
   utf8_2_initial_octet_leading_ones = 2,
@@ -88,7 +86,7 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
   case utf8_4_octet_sequence_len:
     return *character >= utf8_4_character_min && *character <= utf8_4_character_max;
   default:
-    abort();
+    unreachable();
   }
 }
 
@@ -143,8 +141,8 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
 }
 
 bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length) {
-  if (utf8c == nullptr) abort();
-  if (length != 0 && octets == nullptr) abort();
+  if (utf8c == nullptr) unreachable();
+  if (length != 0 && octets == nullptr) unreachable();
 
   struct state state = load_state(utf8c);
   if (state.illegal) return false;
@@ -172,7 +170,7 @@ struct utf8c utf8c_init() {
 }
 
 bool utf8c_finish(const struct utf8c *utf8c) {
-  if (utf8c == nullptr) abort();
+  if (utf8c == nullptr) unreachable();
 
   struct state state = load_state(utf8c);
   return !state.illegal && state.remaining_octet_cnt == 0;
