@@ -128,6 +128,16 @@ Ensure(bad_following) {
   assert_that(well_formed(three, sizeof three), is_false);
 }
 
+Ensure(bad_following_sticks) {
+  static const uint8_t bad[] = {0xC2, 0x00};
+  static const uint8_t letter[] = {'A'};
+  struct utf8c state = utf8c_init();
+  assert_that(utf8c_feed(&state, bad, sizeof bad), is_false);
+  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_feed(&state, letter, sizeof letter), is_false);
+  assert_that(utf8c_finish(&state), is_false);
+}
+
 Ensure(invalid_initial) {
   static const uint8_t initial_f8[] = {0xF8, 0x80, 0x80, 0x80, 0x80};
   static const uint8_t initial_ff[] = {0xFF};
@@ -168,6 +178,7 @@ int main() {
   add_test(suite, stray);
   add_test(suite, reject_sticks);
   add_test(suite, bad_following);
+  add_test(suite, bad_following_sticks);
   add_test(suite, invalid_initial);
   add_test(suite, mixed);
   add_test(suite, empty_while_incomplete);
