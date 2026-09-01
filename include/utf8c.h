@@ -19,10 +19,10 @@ struct utf8c {
 struct utf8c utf8c_init();
 
 /**
- * @p src may be null when @p length is 0.
+ * @p octets may be null when @p length is 0.
  * @return true if still valid, including an incomplete sequence.
  */
-bool utf8c_feed(struct utf8c *utf8c, const uint8_t *src, size_t length);
+bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length);
 
 /**
  * @return true if valid and idle.

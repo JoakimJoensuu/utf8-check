@@ -3,7 +3,7 @@
 #include <stdbit.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <string.h>
 
 /*
  * RFC 3629 §3:
@@ -78,6 +78,16 @@ struct state {
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
 
+static struct state load_state(const struct utf8c *utf8c) {
+  struct state state;
+  memcpy(&state, utf8c->opaque, sizeof state);
+  return state;
+}
+
+static void store_state(struct utf8c *utf8c, const struct state *state) {
+  memcpy(utf8c->opaque, state, sizeof *state);
+}
+
 static bool is_character_valid(uint32_t const *character, size_t octet_sequence_len) {
   switch (octet_sequence_len) {
   case utf8_1_octet_sequence_len:
@@ -91,7 +101,7 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
   case utf8_4_octet_sequence_len:
     return *character >= utf8_4_character_min && *character <= utf8_4_character_max;
   default:
-    abort();
+    unreachable();
   }
 }
 
@@ -145,21 +155,28 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
   }
 }
 
-bool utf8c_feed(struct utf8c *utf8c, const uint8_t *src, size_t length) {
-  if (utf8c == nullptr) abort();
-  if (length != 0 && src == nullptr) abort();
+bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length) {
+  if (utf8c == nullptr) unreachable();
+  if (length != 0 && octets == nullptr) unreachable();
 
-  struct state *state = (struct state *)utf8c;
-  if (state->illegal) return false;
+  struct state state = load_state(utf8c);
+  if (state.illegal) return false;
   if (length == 0) return true;
 
-  for (const uint8_t *octet = src; octet < src + length; octet++) {
-    if (state->remaining_octet_cnt == 0) {
-      if (!feed_initial_octet(state, *octet)) return false;
+  for (const uint8_t *octet = octets; octet < octets + length; octet++) {
+    if (state.remaining_octet_cnt == 0) {
+      if (!feed_initial_octet(&state, *octet)) {
+        store_state(utf8c, &state);
+        return false;
+      }
     } else {
-      if (!feed_following_octet(state, *octet)) return false;
+      if (!feed_following_octet(&state, *octet)) {
+        store_state(utf8c, &state);
+        return false;
+      }
     }
   }
+  store_state(utf8c, &state);
   return true;
 }
 
@@ -168,8 +185,8 @@ struct utf8c utf8c_init() {
 }
 
 bool utf8c_finish(const struct utf8c *utf8c) {
-  if (utf8c == nullptr) abort();
+  if (utf8c == nullptr) unreachable();
 
-  const struct state *state = (const struct state *)utf8c;
-  return !state->illegal && state->remaining_octet_cnt == 0;
+  struct state state = load_state(utf8c);
+  return !state.illegal && state.remaining_octet_cnt == 0;
 }

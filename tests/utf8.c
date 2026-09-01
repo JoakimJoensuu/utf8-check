@@ -2,6 +2,7 @@
 
 #include <cgreen/assertions.h>
 #include <cgreen/constraint_syntax_helpers.h>
+#include <cgreen/reporter.h>
 #include <cgreen/runner.h>
 #include <cgreen/suite.h>
 #include <cgreen/text_reporter.h>
@@ -9,9 +10,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-static bool well_formed(const uint8_t *src, size_t length) {
+static bool well_formed(const uint8_t *octets, size_t length) {
   struct utf8c state = utf8c_init();
-  return utf8c_feed(&state, src, length) && utf8c_finish(&state);
+  return utf8c_feed(&state, octets, length) && utf8c_finish(&state);
 }
 
 Ensure(empty) {
@@ -22,8 +23,8 @@ Ensure(empty) {
 }
 
 Ensure(ascii) {
-  static const uint8_t bytes[] = {0x00, 0x01, 'A', 'z', 0x7F};
-  assert_that(well_formed(bytes, sizeof bytes), is_true);
+  static const uint8_t octets[] = {0x00, 0x01, 'A', 'z', 0x7F};
+  assert_that(well_formed(octets, sizeof octets), is_true);
 }
 
 Ensure(two_byte) {
@@ -120,6 +121,47 @@ Ensure(reject_sticks) {
   assert_that(utf8c_finish(&state), is_false);
 }
 
+Ensure(bad_following) {
+  static const uint8_t two[] = {0xC2, 0x00};
+  static const uint8_t three[] = {0xE2, 0x28, 0xA1};
+  assert_that(well_formed(two, sizeof two), is_false);
+  assert_that(well_formed(three, sizeof three), is_false);
+}
+
+Ensure(bad_following_sticks) {
+  static const uint8_t bad[] = {0xC2, 0x00};
+  static const uint8_t letter[] = {'A'};
+  struct utf8c state = utf8c_init();
+  assert_that(utf8c_feed(&state, bad, sizeof bad), is_false);
+  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_feed(&state, letter, sizeof letter), is_false);
+  assert_that(utf8c_finish(&state), is_false);
+}
+
+Ensure(invalid_initial) {
+  static const uint8_t initial_f8[] = {0xF8, 0x80, 0x80, 0x80, 0x80};
+  static const uint8_t initial_ff[] = {0xFF};
+  static const uint8_t initial_fe[] = {0xFE};
+  assert_that(well_formed(initial_f8, sizeof initial_f8), is_false);
+  assert_that(well_formed(initial_ff, sizeof initial_ff), is_false);
+  assert_that(well_formed(initial_fe, sizeof initial_fe), is_false);
+}
+
+Ensure(mixed) {
+  static const uint8_t octets[] = {'A', 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x90, 0x80, 0x80, 'z'};
+  assert_that(well_formed(octets, sizeof octets), is_true);
+}
+
+Ensure(empty_while_incomplete) {
+  static const uint8_t sequence[] = {0xF0, 0x90, 0x80, 0x80};
+  struct utf8c state = utf8c_init();
+  assert_that(utf8c_feed(&state, sequence, 2), is_true);
+  assert_that(utf8c_feed(&state, nullptr, 0), is_true);
+  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_feed(&state, sequence + 2, 2), is_true);
+  assert_that(utf8c_finish(&state), is_true);
+}
+
 int main() {
   auto suite = create_test_suite();
   add_test(suite, empty);
@@ -135,5 +177,14 @@ int main() {
   add_test(suite, truncated);
   add_test(suite, stray);
   add_test(suite, reject_sticks);
-  return run_test_suite(suite, create_text_reporter());
+  add_test(suite, bad_following);
+  add_test(suite, bad_following_sticks);
+  add_test(suite, invalid_initial);
+  add_test(suite, mixed);
+  add_test(suite, empty_while_incomplete);
+  auto reporter = create_text_reporter();
+  int result = run_test_suite(suite, reporter);
+  destroy_test_suite(suite);
+  destroy_reporter(reporter);
+  return result;
 }

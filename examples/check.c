@@ -2,16 +2,15 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 int main() {
   struct utf8c state = utf8c_init();
-  uint8_t buf[BUFSIZ];
+  uint8_t octets[BUFSIZ];
   for (;;) {
-    size_t byte_cnt = fread(buf, 1, sizeof buf, stdin);
-    if (byte_cnt == 0) break;
-    if (!utf8c_feed(&state, buf, byte_cnt)) return 1;
+    size_t octet_cnt = fread(octets, 1, sizeof octets, stdin);
+    if (octet_cnt == 0) break;
+    if (!utf8c_feed(&state, octets, octet_cnt)) return 1;
   }
-  if (ferror(stdin) != 0) abort();
+  if (ferror(stdin) != 0) return 1;
   return utf8c_finish(&state) ? 0 : 1;
 }
