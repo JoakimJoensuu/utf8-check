@@ -21,6 +21,10 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
+if(PROJECT_IS_TOP_LEVEL)
+  target_compile_options(utf8c_warnings INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(utf8c_warnings INTERFACE -fsanitize=address,undefined)
+endif()
 
 add_library(utf8c src/utf8c.c)
 target_include_directories(utf8c PUBLIC include)
