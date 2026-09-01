@@ -5,15 +5,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-static constexpr size_t utf8c_opaque_len = sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t) +
-                                           sizeof(bool) + alignof(uint32_t) + alignof(size_t) +
-                                           alignof(size_t) + alignof(bool);
+static constexpr size_t utf8c_opaque_size = sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t) +
+                                            sizeof(bool) + alignof(uint32_t) + alignof(size_t) +
+                                            alignof(size_t) + alignof(bool);
 
 /**
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
  */
 struct utf8c {
-  alignas(uint32_t) alignas(size_t) alignas(bool) unsigned char opaque[utf8c_opaque_len];
+  alignas(uint32_t) alignas(size_t) alignas(bool) unsigned char opaque[utf8c_opaque_size];
 };
 
 struct utf8c utf8c_init();
