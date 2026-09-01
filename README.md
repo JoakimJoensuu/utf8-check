@@ -1,7 +1,9 @@
 # UTF-8 check
 
 Only checks well-formed UTF-8 (RFC 3629 §3). Incremental: a code point may
-split across feeds.
+split across feeds. API in include/utf8c.h.
+
+Freestanding library.
 
 ## Build
 
@@ -9,8 +11,8 @@ split across feeds.
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
-CMake fetches [cgreen](https://github.com/cgreen-devs/cgreen) when tests are on.
-Examples and tests are off when this project is not the CMake top level.
+See [CMakeLists.txt](CMakeLists.txt) and [tests/CMakeLists.txt](tests/CMakeLists.txt) for
+options and dependencies.
 
 ## Style
 
