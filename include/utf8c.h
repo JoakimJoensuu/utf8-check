@@ -16,7 +16,7 @@ struct utf8c {
   alignas(uint32_t) alignas(size_t) alignas(bool) unsigned char opaque[utf8c_opaque_size];
 };
 
-struct utf8c utf8c_initialize();
+struct utf8c utf8c_create();
 
 /**
  * @p octets may be null when @p length is 0.
