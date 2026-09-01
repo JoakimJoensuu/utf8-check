@@ -153,12 +153,12 @@ Ensure(mixed) {
 }
 
 Ensure(empty_while_incomplete) {
-  static const uint8_t seq[] = {0xF0, 0x90, 0x80, 0x80};
+  static const uint8_t sequence[] = {0xF0, 0x90, 0x80, 0x80};
   struct utf8c state = utf8c_init();
-  assert_that(utf8c_feed(&state, seq, 2), is_true);
+  assert_that(utf8c_feed(&state, sequence, 2), is_true);
   assert_that(utf8c_feed(&state, nullptr, 0), is_true);
   assert_that(utf8c_finish(&state), is_false);
-  assert_that(utf8c_feed(&state, seq + 2, 2), is_true);
+  assert_that(utf8c_feed(&state, sequence + 2, 2), is_true);
   assert_that(utf8c_finish(&state), is_true);
 }
 
