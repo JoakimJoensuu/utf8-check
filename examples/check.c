@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 int main() {
-  struct utf8c state = utf8c_initialize();
+  struct utf8c state = utf8c_create();
   uint8_t octets[BUFSIZ];
   for (;;) {
     size_t octet_count = fread(octets, 1, sizeof(octets), stdin);

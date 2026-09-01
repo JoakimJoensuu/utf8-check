@@ -180,7 +180,7 @@ bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length) {
   return true;
 }
 
-struct utf8c utf8c_initialize() {
+struct utf8c utf8c_create() {
   return (struct utf8c){};
 }
 
