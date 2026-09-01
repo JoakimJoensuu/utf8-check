@@ -107,7 +107,7 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
 
 static void append_following_octet_payload(struct state *state, uint8_t octet) {
   state->character <<= utf8_following_octet_payload_bit_count;
-  state->character |= octet & utf8_following_octet_payload_mask;
+  state->character |= (uint32_t)octet & utf8_following_octet_payload_mask;
 }
 
 static bool feed_following_octet(struct state *state, uint8_t octet) {
