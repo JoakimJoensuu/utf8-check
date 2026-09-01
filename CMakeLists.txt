@@ -21,15 +21,16 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
+add_library(utf8c_sanitize INTERFACE)
 if(PROJECT_IS_TOP_LEVEL AND (CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU"))
-  target_compile_options(utf8c_warnings INTERFACE -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
-  target_link_options(utf8c_warnings INTERFACE -fsanitize=address,undefined)
+  target_compile_options(utf8c_sanitize INTERFACE -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
+  target_link_options(utf8c_sanitize INTERFACE -fsanitize=address,undefined)
 endif()
 
 add_library(utf8c src/utf8c.c)
 target_include_directories(utf8c PUBLIC include)
 target_compile_options(utf8c PRIVATE -ffreestanding)
-target_link_libraries(utf8c PRIVATE utf8c_warnings)
+target_link_libraries(utf8c PRIVATE utf8c_warnings utf8c_sanitize)
 
 option(UTF8C_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
 option(UTF8C_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})

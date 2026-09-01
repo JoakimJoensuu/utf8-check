@@ -20,9 +20,7 @@ Run the [build](#build) step first when `compile_commands.json` is missing or st
 
 `--experimental-custom-checks` is required for `CustomChecks` in `.clang-tidy`.
 
-Apply `clang-format-23 -i` to fix formatting before the dry run passes.
-
-```sh
-clang-format-23 --dry-run --Werror $(find include src examples tests -type f -name '*.[ch]' | sort)
+To fix formatting, rerun the clang-format command below with `-i` in place of
+`--dry-run --Werror`.
 clang-tidy-23 --experimental-custom-checks $(jq -r '.[].file' compile_commands.json)
 ```
