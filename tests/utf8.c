@@ -11,12 +11,12 @@
 #include <stdint.h>
 
 static bool well_formed(const uint8_t *octets, size_t length) {
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   return utf8c_feed(&state, octets, length) && utf8c_is_finished(&state);
 }
 
 Ensure(empty) {
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   assert_that(utf8c_feed(&state, nullptr, 0), is_true);
   assert_that(utf8c_is_finished(&state), is_true);
   assert_that(well_formed(nullptr, 0), is_true);
@@ -54,7 +54,7 @@ Ensure(four_byte) {
 
 Ensure(split) {
   static const uint8_t seq[] = {0xF0, 0x9F, 0x92, 0xA9};
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   assert_that(utf8c_feed(&state, seq, 1), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, seq + 1, 2), is_true);
@@ -65,7 +65,7 @@ Ensure(split) {
 
 Ensure(unfinished) {
   static const uint8_t initial[] = {0xC2};
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   assert_that(utf8c_feed(&state, initial, sizeof(initial)), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
 }
@@ -114,7 +114,7 @@ Ensure(stray) {
 Ensure(reject_sticks) {
   static const uint8_t stray[] = {0x80};
   static const uint8_t letter[] = {'A'};
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   assert_that(utf8c_feed(&state, stray, sizeof(stray)), is_false);
   assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, letter, sizeof(letter)), is_false);
@@ -131,7 +131,7 @@ Ensure(bad_following) {
 Ensure(bad_following_sticks) {
   static const uint8_t bad[] = {0xC2, 0x00};
   static const uint8_t letter[] = {'A'};
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   assert_that(utf8c_feed(&state, bad, sizeof(bad)), is_false);
   assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, letter, sizeof(letter)), is_false);
@@ -154,7 +154,7 @@ Ensure(mixed) {
 
 Ensure(empty_while_incomplete) {
   static const uint8_t sequence[] = {0xF0, 0x90, 0x80, 0x80};
-  struct utf8c state = utf8c_init();
+  struct utf8c state = utf8c_initialize();
   assert_that(utf8c_feed(&state, sequence, 2), is_true);
   assert_that(utf8c_feed(&state, nullptr, 0), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
