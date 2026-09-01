@@ -80,12 +80,12 @@ static_assert(alignof(struct state) <= alignof(struct utf8c));
 
 static struct state load_state(const struct utf8c *utf8c) {
   struct state state;
-  memcpy(&state, utf8c->opaque, sizeof state);
+  memcpy(&state, utf8c->opaque, sizeof(state));
   return state;
 }
 
 static void store_state(struct utf8c *utf8c, const struct state *state) {
-  memcpy(utf8c->opaque, state, sizeof *state);
+  memcpy(utf8c->opaque, state, sizeof(*state));
 }
 
 static bool is_character_valid(uint32_t const *character, size_t octet_sequence_length) {

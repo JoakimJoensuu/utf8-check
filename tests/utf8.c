@@ -24,14 +24,14 @@ Ensure(empty) {
 
 Ensure(ascii) {
   static const uint8_t octets[] = {0x00, 0x01, 'A', 'z', 0x7F};
-  assert_that(well_formed(octets, sizeof octets), is_true);
+  assert_that(well_formed(octets, sizeof(octets)), is_true);
 }
 
 Ensure(two_byte) {
   static const uint8_t u0080[] = {0xC2, 0x80};
   static const uint8_t u07ff[] = {0xDF, 0xBF};
-  assert_that(well_formed(u0080, sizeof u0080), is_true);
-  assert_that(well_formed(u07ff, sizeof u07ff), is_true);
+  assert_that(well_formed(u0080, sizeof(u0080)), is_true);
+  assert_that(well_formed(u07ff, sizeof(u07ff)), is_true);
 }
 
 Ensure(three_byte) {
@@ -39,17 +39,17 @@ Ensure(three_byte) {
   static const uint8_t ud7ff[] = {0xED, 0x9F, 0xBF};
   static const uint8_t ue000[] = {0xEE, 0x80, 0x80};
   static const uint8_t uffff[] = {0xEF, 0xBF, 0xBF};
-  assert_that(well_formed(u0800, sizeof u0800), is_true);
-  assert_that(well_formed(ud7ff, sizeof ud7ff), is_true);
-  assert_that(well_formed(ue000, sizeof ue000), is_true);
-  assert_that(well_formed(uffff, sizeof uffff), is_true);
+  assert_that(well_formed(u0800, sizeof(u0800)), is_true);
+  assert_that(well_formed(ud7ff, sizeof(ud7ff)), is_true);
+  assert_that(well_formed(ue000, sizeof(ue000)), is_true);
+  assert_that(well_formed(uffff, sizeof(uffff)), is_true);
 }
 
 Ensure(four_byte) {
   static const uint8_t u10000[] = {0xF0, 0x90, 0x80, 0x80};
   static const uint8_t u10ffff[] = {0xF4, 0x8F, 0xBF, 0xBF};
-  assert_that(well_formed(u10000, sizeof u10000), is_true);
-  assert_that(well_formed(u10ffff, sizeof u10ffff), is_true);
+  assert_that(well_formed(u10000, sizeof(u10000)), is_true);
+  assert_that(well_formed(u10ffff, sizeof(u10ffff)), is_true);
 }
 
 Ensure(split) {
@@ -66,7 +66,7 @@ Ensure(split) {
 Ensure(unfinished) {
   static const uint8_t initial[] = {0xC2};
   struct utf8c state = utf8c_init();
-  assert_that(utf8c_feed(&state, initial, sizeof initial), is_true);
+  assert_that(utf8c_feed(&state, initial, sizeof(initial)), is_true);
   assert_that(utf8c_finish(&state), is_false);
 }
 
@@ -75,66 +75,66 @@ Ensure(overlong) {
   static const uint8_t over_c1[] = {0xC1, 0xBF};
   static const uint8_t over_e0[] = {0xE0, 0x9F, 0xBF};
   static const uint8_t over_f0[] = {0xF0, 0x8F, 0xBF, 0xBF};
-  assert_that(well_formed(over_c0, sizeof over_c0), is_false);
-  assert_that(well_formed(over_c1, sizeof over_c1), is_false);
-  assert_that(well_formed(over_e0, sizeof over_e0), is_false);
-  assert_that(well_formed(over_f0, sizeof over_f0), is_false);
+  assert_that(well_formed(over_c0, sizeof(over_c0)), is_false);
+  assert_that(well_formed(over_c1, sizeof(over_c1)), is_false);
+  assert_that(well_formed(over_e0, sizeof(over_e0)), is_false);
+  assert_that(well_formed(over_f0, sizeof(over_f0)), is_false);
 }
 
 Ensure(surrogate) {
   static const uint8_t ud800[] = {0xED, 0xA0, 0x80};
   static const uint8_t udfff[] = {0xED, 0xBF, 0xBF};
-  assert_that(well_formed(ud800, sizeof ud800), is_false);
-  assert_that(well_formed(udfff, sizeof udfff), is_false);
+  assert_that(well_formed(ud800, sizeof(ud800)), is_false);
+  assert_that(well_formed(udfff, sizeof(udfff)), is_false);
 }
 
 Ensure(too_big) {
   static const uint8_t u110000[] = {0xF4, 0x90, 0x80, 0x80};
   static const uint8_t initial_f5[] = {0xF5, 0x80, 0x80, 0x80};
-  assert_that(well_formed(u110000, sizeof u110000), is_false);
-  assert_that(well_formed(initial_f5, sizeof initial_f5), is_false);
+  assert_that(well_formed(u110000, sizeof(u110000)), is_false);
+  assert_that(well_formed(initial_f5, sizeof(initial_f5)), is_false);
 }
 
 Ensure(truncated) {
   static const uint8_t two[] = {0xC2};
   static const uint8_t three[] = {0xE2, 0x82};
   static const uint8_t four[] = {0xF0, 0x90, 0x80};
-  assert_that(well_formed(two, sizeof two), is_false);
-  assert_that(well_formed(three, sizeof three), is_false);
-  assert_that(well_formed(four, sizeof four), is_false);
+  assert_that(well_formed(two, sizeof(two)), is_false);
+  assert_that(well_formed(three, sizeof(three)), is_false);
+  assert_that(well_formed(four, sizeof(four)), is_false);
 }
 
 Ensure(stray) {
   static const uint8_t cont[] = {0x80};
   static const uint8_t after[] = {'A', 0xBF};
-  assert_that(well_formed(cont, sizeof cont), is_false);
-  assert_that(well_formed(after, sizeof after), is_false);
+  assert_that(well_formed(cont, sizeof(cont)), is_false);
+  assert_that(well_formed(after, sizeof(after)), is_false);
 }
 
 Ensure(reject_sticks) {
   static const uint8_t stray[] = {0x80};
   static const uint8_t letter[] = {'A'};
   struct utf8c state = utf8c_init();
-  assert_that(utf8c_feed(&state, stray, sizeof stray), is_false);
+  assert_that(utf8c_feed(&state, stray, sizeof(stray)), is_false);
   assert_that(utf8c_finish(&state), is_false);
-  assert_that(utf8c_feed(&state, letter, sizeof letter), is_false);
+  assert_that(utf8c_feed(&state, letter, sizeof(letter)), is_false);
   assert_that(utf8c_finish(&state), is_false);
 }
 
 Ensure(bad_following) {
   static const uint8_t two[] = {0xC2, 0x00};
   static const uint8_t three[] = {0xE2, 0x28, 0xA1};
-  assert_that(well_formed(two, sizeof two), is_false);
-  assert_that(well_formed(three, sizeof three), is_false);
+  assert_that(well_formed(two, sizeof(two)), is_false);
+  assert_that(well_formed(three, sizeof(three)), is_false);
 }
 
 Ensure(bad_following_sticks) {
   static const uint8_t bad[] = {0xC2, 0x00};
   static const uint8_t letter[] = {'A'};
   struct utf8c state = utf8c_init();
-  assert_that(utf8c_feed(&state, bad, sizeof bad), is_false);
+  assert_that(utf8c_feed(&state, bad, sizeof(bad)), is_false);
   assert_that(utf8c_finish(&state), is_false);
-  assert_that(utf8c_feed(&state, letter, sizeof letter), is_false);
+  assert_that(utf8c_feed(&state, letter, sizeof(letter)), is_false);
   assert_that(utf8c_finish(&state), is_false);
 }
 
@@ -142,14 +142,14 @@ Ensure(invalid_initial) {
   static const uint8_t initial_f8[] = {0xF8, 0x80, 0x80, 0x80, 0x80};
   static const uint8_t initial_ff[] = {0xFF};
   static const uint8_t initial_fe[] = {0xFE};
-  assert_that(well_formed(initial_f8, sizeof initial_f8), is_false);
-  assert_that(well_formed(initial_ff, sizeof initial_ff), is_false);
-  assert_that(well_formed(initial_fe, sizeof initial_fe), is_false);
+  assert_that(well_formed(initial_f8, sizeof(initial_f8)), is_false);
+  assert_that(well_formed(initial_ff, sizeof(initial_ff)), is_false);
+  assert_that(well_formed(initial_fe, sizeof(initial_fe)), is_false);
 }
 
 Ensure(mixed) {
   static const uint8_t octets[] = {'A', 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x90, 0x80, 0x80, 'z'};
-  assert_that(well_formed(octets, sizeof octets), is_true);
+  assert_that(well_formed(octets, sizeof(octets)), is_true);
 }
 
 Ensure(empty_while_incomplete) {
