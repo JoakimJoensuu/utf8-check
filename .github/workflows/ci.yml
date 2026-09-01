@@ -52,7 +52,7 @@ jobs:
           export LD_LIBRARY_PATH="${{ runner.temp }}/clang/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           clang-format --version
           clang-tidy --version
-          sources=$(find include src examples tests -type f -name '*.[ch]' | sort)
+          sources=$(find include src examples tests -type f -name '*.[ch]' 2>/dev/null | sort)
           units=$(jq -r '.[].file' compile_commands.json)
           set +e
           if [ -n "$sources" ]; then
