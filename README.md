@@ -1,7 +1,7 @@
 # UTF-8 check
 
 Only checks well-formed UTF-8 (RFC 3629 §3). Incremental: a code point may
-split across feeds. API in include/utf8c.h.
+split across feeds. API in [include/utf8c.h](include/utf8c.h).
 
 Freestanding library.
 
