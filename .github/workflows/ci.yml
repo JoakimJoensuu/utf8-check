@@ -52,13 +52,23 @@ jobs:
           export LD_LIBRARY_PATH="${{ runner.temp }}/clang/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           clang-format --version
           clang-tidy --version
-          sources=$(find include src examples tests -type f -name '*.[ch]' | sort)
+          sources=$(find include src examples tests -type f -name '*.[ch]' 2>/dev/null | sort)
           units=$(jq -r '.[].file' compile_commands.json)
           set +e
-          clang-format --dry-run --Werror $sources | tee "$RUNNER_TEMP/format.log"
-          fmt=${PIPESTATUS[0]}
-          clang-tidy --experimental-custom-checks $units | tee "$RUNNER_TEMP/tidy.log"
-          tidy=${PIPESTATUS[0]}
+          if [ -n "$sources" ]; then
+            clang-format --dry-run --Werror $sources | tee "$RUNNER_TEMP/format.log"
+            fmt=${PIPESTATUS[0]}
+          else
+            fmt=0
+            : > "$RUNNER_TEMP/format.log"
+          fi
+          if [ -n "$units" ]; then
+            clang-tidy --experimental-custom-checks $units | tee "$RUNNER_TEMP/tidy.log"
+            tidy=${PIPESTATUS[0]}
+          else
+            tidy=0
+            : > "$RUNNER_TEMP/tidy.log"
+          fi
           set -e
           {
             echo '## clang-format'

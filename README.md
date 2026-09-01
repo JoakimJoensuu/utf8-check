@@ -1,7 +1,9 @@
 # UTF-8 check
 
 Only checks well-formed UTF-8 (RFC 3629 §3). Incremental: a code point may
-split across feeds.
+split across feeds. API in [include/utf8c.h](include/utf8c.h).
+
+Freestanding library.
 
 ## Build
 
@@ -9,12 +11,17 @@ split across feeds.
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
-CMake fetches [cgreen](https://github.com/cgreen-devs/cgreen) when tests are on.
-Examples and tests are off when this project is not the CMake top level.
+See [CMakeLists.txt](CMakeLists.txt) and [tests/CMakeLists.txt](tests/CMakeLists.txt) for
+options and dependencies.
 
 ## Style
 
+Run the [build](#build) step first when `compile_commands.json` is missing or stale.
+
 `--experimental-custom-checks` is required for `CustomChecks` in `.clang-tidy`.
+
+To fix formatting, rerun the clang-format command below with `-i` in place of
+`--dry-run --Werror`.
 
 ```sh
 clang-format-23 --dry-run --Werror $(find include src examples tests -type f -name '*.[ch]' | sort)
