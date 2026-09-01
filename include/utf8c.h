@@ -27,6 +27,6 @@ bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length);
 /**
  * @return true if valid and idle.
  */
-bool utf8c_finish(const struct utf8c *utf8c);
+bool utf8c_is_finished(const struct utf8c *utf8c);
 
 #endif

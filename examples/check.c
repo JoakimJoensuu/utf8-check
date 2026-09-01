@@ -12,5 +12,5 @@ int main() {
     if (!utf8c_feed(&state, octets, octet_count)) return 1;
   }
   if (ferror(stdin) != 0) return 1;
-  return utf8c_finish(&state) ? 0 : 1;
+  return utf8c_is_finished(&state) ? 0 : 1;
 }

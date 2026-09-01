@@ -12,13 +12,13 @@
 
 static bool well_formed(const uint8_t *octets, size_t length) {
   struct utf8c state = utf8c_init();
-  return utf8c_feed(&state, octets, length) && utf8c_finish(&state);
+  return utf8c_feed(&state, octets, length) && utf8c_is_finished(&state);
 }
 
 Ensure(empty) {
   struct utf8c state = utf8c_init();
   assert_that(utf8c_feed(&state, nullptr, 0), is_true);
-  assert_that(utf8c_finish(&state), is_true);
+  assert_that(utf8c_is_finished(&state), is_true);
   assert_that(well_formed(nullptr, 0), is_true);
 }
 
@@ -56,18 +56,18 @@ Ensure(split) {
   static const uint8_t seq[] = {0xF0, 0x9F, 0x92, 0xA9};
   struct utf8c state = utf8c_init();
   assert_that(utf8c_feed(&state, seq, 1), is_true);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, seq + 1, 2), is_true);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, seq + 3, 1), is_true);
-  assert_that(utf8c_finish(&state), is_true);
+  assert_that(utf8c_is_finished(&state), is_true);
 }
 
 Ensure(unfinished) {
   static const uint8_t initial[] = {0xC2};
   struct utf8c state = utf8c_init();
   assert_that(utf8c_feed(&state, initial, sizeof(initial)), is_true);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
 }
 
 Ensure(overlong) {
@@ -116,9 +116,9 @@ Ensure(reject_sticks) {
   static const uint8_t letter[] = {'A'};
   struct utf8c state = utf8c_init();
   assert_that(utf8c_feed(&state, stray, sizeof(stray)), is_false);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, letter, sizeof(letter)), is_false);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
 }
 
 Ensure(bad_following) {
@@ -133,9 +133,9 @@ Ensure(bad_following_sticks) {
   static const uint8_t letter[] = {'A'};
   struct utf8c state = utf8c_init();
   assert_that(utf8c_feed(&state, bad, sizeof(bad)), is_false);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, letter, sizeof(letter)), is_false);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
 }
 
 Ensure(invalid_initial) {
@@ -157,9 +157,9 @@ Ensure(empty_while_incomplete) {
   struct utf8c state = utf8c_init();
   assert_that(utf8c_feed(&state, sequence, 2), is_true);
   assert_that(utf8c_feed(&state, nullptr, 0), is_true);
-  assert_that(utf8c_finish(&state), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
   assert_that(utf8c_feed(&state, sequence + 2, 2), is_true);
-  assert_that(utf8c_finish(&state), is_true);
+  assert_that(utf8c_is_finished(&state), is_true);
 }
 
 int main() {

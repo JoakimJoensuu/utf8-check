@@ -78,7 +78,7 @@ struct state {
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
 
-static struct state load_state(const struct utf8c *utf8c) {
+static struct state state_of(const struct utf8c *utf8c) {
   struct state state;
   memcpy(&state, utf8c->opaque, sizeof(state));
   return state;
@@ -107,7 +107,7 @@ static bool is_character_valid(uint32_t const *character, size_t octet_sequence_
 
 static void append_following_octet_payload(struct state *state, uint8_t octet) {
   state->character <<= utf8_following_octet_payload_bit_count;
-  state->character |= (uint32_t)octet & utf8_following_octet_payload_mask;
+  state->character |= octet & utf8_following_octet_payload_mask;
 }
 
 static bool feed_following_octet(struct state *state, uint8_t octet) {
@@ -135,17 +135,17 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
   case utf8_1_initial_octet_leading_ones:
     return true;
   case utf8_2_initial_octet_leading_ones:
-    state->character = (uint32_t)octet & utf8_2_initial_octet_payload_mask;
+    state->character = octet & utf8_2_initial_octet_payload_mask;
     state->octet_sequence_length = utf8_2_octet_sequence_length;
     state->remaining_octet_count = utf8_2_following_octet_count;
     return true;
   case utf8_3_initial_octet_leading_ones:
-    state->character = (uint32_t)octet & utf8_3_initial_octet_payload_mask;
+    state->character = octet & utf8_3_initial_octet_payload_mask;
     state->octet_sequence_length = utf8_3_octet_sequence_length;
     state->remaining_octet_count = utf8_3_following_octet_count;
     return true;
   case utf8_4_initial_octet_leading_ones:
-    state->character = (uint32_t)octet & utf8_4_initial_octet_payload_mask;
+    state->character = octet & utf8_4_initial_octet_payload_mask;
     state->octet_sequence_length = utf8_4_octet_sequence_length;
     state->remaining_octet_count = utf8_4_following_octet_count;
     return true;
@@ -159,7 +159,7 @@ bool utf8c_feed(struct utf8c *utf8c, const uint8_t *octets, size_t length) {
   if (utf8c == nullptr) unreachable();
   if (length != 0 && octets == nullptr) unreachable();
 
-  struct state state = load_state(utf8c);
+  struct state state = state_of(utf8c);
   if (state.illegal) return false;
   if (length == 0) return true;
 
@@ -184,9 +184,9 @@ struct utf8c utf8c_init() {
   return (struct utf8c){};
 }
 
-bool utf8c_finish(const struct utf8c *utf8c) {
+bool utf8c_is_finished(const struct utf8c *utf8c) {
   if (utf8c == nullptr) unreachable();
 
-  struct state state = load_state(utf8c);
+  struct state state = state_of(utf8c);
   return !state.illegal && state.remaining_octet_count == 0;
 }
