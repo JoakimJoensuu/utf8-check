@@ -22,5 +22,8 @@ Run the [build](#build) step first when `compile_commands.json` is missing or st
 
 To fix formatting, rerun the clang-format command below with `-i` in place of
 `--dry-run --Werror`.
+
+```sh
+clang-format-23 --dry-run --Werror $(find include src examples tests -type f -name '*.[ch]' | sort)
 clang-tidy-23 --experimental-custom-checks $(jq -r '.[].file' compile_commands.json)
 ```
