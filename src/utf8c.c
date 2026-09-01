@@ -52,7 +52,7 @@ enum : uint8_t {
   utf8_following_octet_high_order_bits_mask = 0b11000000,
   utf8_following_octet_high_order_bits      = 0b10000000,
   utf8_following_octet_payload_mask         = 0b00111111,
-  utf8_following_octet_payload_bit_count      = 6,
+  utf8_following_octet_payload_bit_count    = 6,
 };
 
 enum : uint32_t {
