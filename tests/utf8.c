@@ -1,7 +1,5 @@
 #include <utf8c.h>
 
-#include "utf8c_test.h"
-
 #include <cgreen/assertions.h>
 #include <cgreen/constraint_syntax_helpers.h>
 #include <cgreen/reporter.h>
@@ -9,13 +7,11 @@
 #include <cgreen/suite.h>
 #include <cgreen/text_reporter.h>
 #include <cgreen/unit.h>
-#include <limits.h>
 #include <stddef.h>
 
 enum : unsigned char {
-  nine_bit_storage_unit_width      = 9,
-  nine_bit_storage_unit_feed_count = 8,
-  sixteen_bit_storage_unit_width   = 16,
+  nine_bit_storage_unit_width    = 9,
+  sixteen_bit_storage_unit_width = 16,
 };
 
 static bool feed_octets(struct utf8c *state, const unsigned char *octets, size_t length) {
@@ -98,20 +94,23 @@ Ensure(storage_unit_invalid) {
 
 Ensure(two_octets_per_storage_unit) {
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_test_feed_bits(&state, 0xC280UL, sixteen_bit_storage_unit_width), is_true);
+  assert_that(utf8c_feed_bit_pattern(&state, 0xC280, sixteen_bit_storage_unit_width), is_true);
   assert_that(utf8c_is_finished(&state), is_true);
 }
 
 Ensure(partial_octet_from_storage_unit) {
+  static size_t const units[] = {389, 1, 10, 20, 40, 80, 160, 321};
+  static unsigned char const octets[] = {0xC2, 0x80, 'A', 'A', 'A', 'A', 'A', 'A', 'A'};
+
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_test_feed_bits(&state, 0, nine_bit_storage_unit_width), is_true);
+  assert_that(utf8c_feed_bit_pattern(&state, units[0], nine_bit_storage_unit_width), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
 
-  for (unsigned char unit = 1;
-       unit < nine_bit_storage_unit_feed_count && !utf8c_is_finished(&state); unit++) {
-    assert_that(utf8c_test_feed_bits(&state, 0, nine_bit_storage_unit_width), is_true);
+  for (size_t index = 1; index < sizeof(units) / sizeof(units[0]); index++) {
+    assert_that(utf8c_feed_bit_pattern(&state, units[index], nine_bit_storage_unit_width), is_true);
   }
   assert_that(utf8c_is_finished(&state), is_true);
+  assert_that(well_formed(octets, sizeof(octets)), is_true);
 }
 
 Ensure(unfinished) {

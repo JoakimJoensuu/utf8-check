@@ -1,9 +1,5 @@
 #include "utf8c.h"
 
-#ifdef UTF8C_TEST
-#include "utf8c_test.h"
-#endif
-
 #include <limits.h>
 #include <stdbit.h>
 #include <stddef.h>
@@ -196,6 +192,7 @@ static bool feed_bit(struct state *state, unsigned char bit) {
 
 static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit_count) {
   if (utf8c == nullptr) unreachable();
+  if (bit_count > utf8_unsigned_long_bit_count) unreachable();
 
   struct state state = state_of(utf8c);
   if (state.illegal) return false;
@@ -216,6 +213,10 @@ static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit
 
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits) {
   return feed_bits(utf8c, bits, utf8_storage_unit_bit_count);
+}
+
+bool utf8c_feed_bit_pattern(struct utf8c *utf8c, size_t bits, unsigned char bit_count) {
+  return feed_bits(utf8c, (unsigned long)bits, bit_count);
 }
 
 bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet) {
@@ -243,9 +244,3 @@ bool utf8c_is_finished(const struct utf8c *utf8c) {
   struct state state = state_of(utf8c);
   return !state.illegal && state.remaining_octet_count == 0 && state.partial_bit_count == 0;
 }
-
-#ifdef UTF8C_TEST
-bool utf8c_test_feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit_count) {
-  return feed_bits(utf8c, bits, bit_count);
-}
-#endif
