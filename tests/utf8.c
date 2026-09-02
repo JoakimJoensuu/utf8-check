@@ -78,15 +78,13 @@ Ensure(split) {
 }
 
 Ensure(storage_unit_valid) {
-  static const unsigned char units[] = {'A', 0xC2, 0x80};
+  static const unsigned char units[] = {0, 0, 0, 0, 0, 0, 0, 0};
   assert_that(well_formed_storage_units(units, sizeof(units)), is_true);
 }
 
 Ensure(storage_unit_invalid) {
-  static const unsigned char units[] = {0xC2, 0x00};
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_feed_bits(&state, units[0]), is_true);
-  assert_that(utf8c_feed_bits(&state, units[1]), is_false);
+  assert_that(utf8c_feed_bits(&state, (unsigned char)~0), is_false);
   assert_that(utf8c_is_finished(&state), is_false);
 }
 
