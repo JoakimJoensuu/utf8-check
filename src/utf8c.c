@@ -55,7 +55,7 @@ enum : unsigned char {
   utf8_following_octet_payload_mask         = 0b00111111,
   utf8_following_octet_payload_bit_count    = 6,
   utf8_octet_bit_count                      = 8,
-  utf8_octet_mask                           = 0xFF,
+  utf8_octet_mask                           = 0b11111111,
 };
 
 enum : uint_least32_t {
@@ -76,8 +76,8 @@ enum : unsigned {
   utf8_unsigned_bit_count = UINT_WIDTH,
 };
 
-static unsigned leading_ones_in_octet(unsigned octet) {
-  return stdc_leading_ones(octet << (utf8_unsigned_bit_count - utf8_octet_bit_count));
+static unsigned leading_ones_in_octet(unsigned char octet) {
+  return stdc_leading_ones((unsigned)octet << (utf8_unsigned_bit_count - utf8_octet_bit_count));
 }
 
 struct state {
@@ -119,12 +119,12 @@ static bool is_character_valid(uint_least32_t const *character, size_t octet_seq
   }
 }
 
-static void append_following_octet_payload(struct state *state, unsigned octet) {
+static void append_following_octet_payload(struct state *state, unsigned char octet) {
   state->character <<= utf8_following_octet_payload_bit_count;
   state->character |= (uint_least32_t)octet & utf8_following_octet_payload_mask;
 }
 
-static bool feed_following_octet(struct state *state, unsigned octet) {
+static bool feed_following_octet(struct state *state, unsigned char octet) {
   if ((octet & utf8_following_octet_high_order_bits_mask) != utf8_following_octet_high_order_bits) {
     state->illegal = true;
     return false;
@@ -144,7 +144,7 @@ static bool feed_following_octet(struct state *state, unsigned octet) {
   return true;
 }
 
-static bool feed_initial_octet(struct state *state, unsigned octet) {
+static bool feed_initial_octet(struct state *state, unsigned char octet) {
   switch (leading_ones_in_octet(octet)) {
   case utf8_1_initial_octet_leading_ones:
     return true;
@@ -169,7 +169,7 @@ static bool feed_initial_octet(struct state *state, unsigned octet) {
   }
 }
 
-static bool feed_octet(struct state *state, unsigned octet) {
+static bool feed_octet(struct state *state, unsigned char octet) {
   if (state->remaining_octet_count == 0) return feed_initial_octet(state, octet);
   return feed_following_octet(state, octet);
 }
@@ -179,7 +179,7 @@ static bool feed_bit(struct state *state, unsigned bit) {
   state->partial_bit_count++;
   if (state->partial_bit_count < utf8_octet_bit_count) return true;
 
-  unsigned const octet = state->partial_octet;
+  unsigned char const octet = state->partial_octet;
   state->partial_octet = 0;
   state->partial_bit_count = 0;
   return feed_octet(state, octet);
@@ -210,7 +210,7 @@ bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits) {
   return feed_bits(utf8c, bits, CHAR_BIT);
 }
 
-bool utf8c_feed_octet(struct utf8c *utf8c, unsigned octet) {
+bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet) {
   return feed_bits(utf8c, octet & utf8_octet_mask, utf8_octet_bit_count);
 }
 

@@ -27,11 +27,10 @@ struct utf8c utf8c_create();
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits);
 
 /**
- * Feed one RFC 3629 octet.
- * @param octet only the least significant 8 bits are used.
+ * Feed one RFC 3629 octet (8 bits).
  * @return true if still valid, including an incomplete code point.
  */
-bool utf8c_feed_octet(struct utf8c *utf8c, unsigned octet);
+bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet);
 
 /**
  * @return true if input is valid and no octet or code point remains incomplete from prior
