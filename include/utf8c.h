@@ -21,7 +21,8 @@ struct utf8c {
 struct utf8c utf8c_create();
 
 /**
- * Feed @c CHAR_BIT bits from one storage unit, MSB-first.
+ * Feed @c CHAR_BIT bits from one storage unit. Bits are fed MSB-first; each
+ * 8 bits is one RFC 3629 octet.
  * @return true if still valid, including an incomplete octet or code point.
  */
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits);
