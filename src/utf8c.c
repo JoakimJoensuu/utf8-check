@@ -194,7 +194,6 @@ static bool feed_bit(struct state *state, unsigned char bit) {
   return feed_octet(state, octet);
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters) internal; two call sites
 static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit_count) {
   if (utf8c == nullptr) unreachable();
 
