@@ -28,7 +28,8 @@ struct utf8c utf8c_create();
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits);
 
 /**
- * Feed one RFC 3629 octet (8 bits).
+ * Feed one RFC 3629 octet (8 bits). Do not call while @c utf8c_feed_bits() has
+ * left a partial octet.
  * @return true if still valid, including an incomplete code point.
  */
 bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet);

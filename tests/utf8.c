@@ -77,6 +77,19 @@ Ensure(two_octets_per_word) {
 }
 #endif
 
+#if CHAR_BIT % 8 != 0
+Ensure(partial_octet_from_storage_unit) {
+  struct utf8c state = utf8c_create();
+  assert_that(utf8c_feed_bits(&state, (unsigned char)0), is_true);
+  assert_that(utf8c_is_finished(&state), is_false);
+
+  for (unsigned char unit = 1; unit < 8 && !utf8c_is_finished(&state); unit++) {
+    assert_that(utf8c_feed_bits(&state, (unsigned char)0), is_true);
+  }
+  assert_that(utf8c_is_finished(&state), is_true);
+}
+#endif
+
 Ensure(unfinished) {
   static const unsigned char initial[] = {0xC2};
   struct utf8c state = utf8c_create();
@@ -168,15 +181,6 @@ Ensure(mixed) {
   assert_that(well_formed(octets, sizeof(octets)), is_true);
 }
 
-Ensure(empty_while_incomplete) {
-  static const unsigned char sequence[] = {0xF0, 0x90, 0x80, 0x80};
-  struct utf8c state = utf8c_create();
-  assert_that(feed_octets(&state, sequence, 2), is_true);
-  assert_that(utf8c_is_finished(&state), is_false);
-  assert_that(feed_octets(&state, sequence + 2, 2), is_true);
-  assert_that(utf8c_is_finished(&state), is_true);
-}
-
 int main() {
   auto suite = create_test_suite();
   add_test(suite, empty);
@@ -187,6 +191,9 @@ int main() {
   add_test(suite, split);
 #if CHAR_BIT == 16
   add_test(suite, two_octets_per_word);
+#endif
+#if CHAR_BIT % 8 != 0
+  add_test(suite, partial_octet_from_storage_unit);
 #endif
   add_test(suite, unfinished);
   add_test(suite, overlong);
@@ -199,7 +206,6 @@ int main() {
   add_test(suite, bad_following_sticks);
   add_test(suite, invalid_initial);
   add_test(suite, mixed);
-  add_test(suite, empty_while_incomplete);
   auto reporter = create_text_reporter();
   int result = run_test_suite(suite, reporter);
   destroy_test_suite(suite);

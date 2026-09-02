@@ -185,7 +185,7 @@ static bool feed_bit(struct state *state, unsigned bit) {
   return feed_octet(state, octet);
 }
 
-static bool feed_bits(struct utf8c *utf8c, unsigned char bits, unsigned bit_count) {
+static bool feed_bits(struct utf8c *utf8c, unsigned char bits, unsigned char bit_count) {
   if (utf8c == nullptr) unreachable();
   if (bit_count > utf8_bits_per_word) unreachable();
 
@@ -211,6 +211,11 @@ bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits) {
 }
 
 bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet) {
+  if (utf8c == nullptr) unreachable();
+
+  struct state state = state_of(utf8c);
+  if (state.partial_bit_count != 0) unreachable();
+
   return feed_bits(utf8c, octet & utf8_octet_mask, utf8_octet_bit_count);
 }
 
