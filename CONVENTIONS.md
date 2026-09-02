@@ -75,7 +75,8 @@ definition.
 ## Tests
 
 Assert observable behaviour through the public API, not internal
-implementation.
+implementation. Exceptions are allowed only when there is good reason to
+make one.
 
 ## Commits and PRs
 

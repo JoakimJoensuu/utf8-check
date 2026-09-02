@@ -223,8 +223,14 @@ bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet) {
 
   struct state state = state_of(utf8c);
   if (state.partial_bit_count != 0) unreachable();
+  if (state.illegal) return false;
 
-  return feed_bits(utf8c, octet & utf8_octet_mask, utf8_octet_bit_count);
+  if (!feed_octet(&state, octet & utf8_octet_mask)) {
+    store_state(utf8c, &state);
+    return false;
+  }
+  store_state(utf8c, &state);
+  return true;
 }
 
 struct utf8c utf8c_create() {

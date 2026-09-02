@@ -107,8 +107,8 @@ Ensure(partial_octet_from_storage_unit) {
   assert_that(utf8c_test_feed_bits(&state, 0, nine_bit_storage_unit_width), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
 
-  for (unsigned char unit = 1; unit < nine_bit_storage_unit_feed_count && !utf8c_is_finished(&state);
-       unit++) {
+  for (unsigned char unit = 1;
+       unit < nine_bit_storage_unit_feed_count && !utf8c_is_finished(&state); unit++) {
     assert_that(utf8c_test_feed_bits(&state, 0, nine_bit_storage_unit_width), is_true);
   }
   assert_that(utf8c_is_finished(&state), is_true);
