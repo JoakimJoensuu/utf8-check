@@ -35,6 +35,11 @@ target_link_libraries(utf8c PRIVATE utf8c_warnings utf8c_sanitize)
 option(UTF8C_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
 option(UTF8C_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
+if(UTF8C_TESTS)
+  target_compile_definitions(utf8c PRIVATE UTF8C_TEST)
+  target_include_directories(utf8c PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+endif()
+
 if(UTF8C_EXAMPLES)
   add_subdirectory(examples)
 endif()

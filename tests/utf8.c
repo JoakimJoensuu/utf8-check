@@ -1,5 +1,7 @@
 #include <utf8c.h>
 
+#include "utf8c_test.h"
+
 #include <cgreen/assertions.h>
 #include <cgreen/constraint_syntax_helpers.h>
 #include <cgreen/reporter.h>
@@ -9,6 +11,12 @@
 #include <cgreen/unit.h>
 #include <limits.h>
 #include <stddef.h>
+
+enum : unsigned char {
+  nine_bit_storage_unit_width      = 9,
+  nine_bit_storage_unit_feed_count = 8,
+  sixteen_bit_storage_unit_width   = 16,
+};
 
 static bool feed_octets(struct utf8c *state, const unsigned char *octets, size_t length) {
   for (size_t index = 0; index < length; index++) {
@@ -88,26 +96,23 @@ Ensure(storage_unit_invalid) {
   assert_that(utf8c_is_finished(&state), is_false);
 }
 
-#if CHAR_BIT == 16
-Ensure(two_octets_per_word) {
+Ensure(two_octets_per_storage_unit) {
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_feed_bits(&state, (unsigned char)0xC280), is_true);
+  assert_that(utf8c_test_feed_bits(&state, 0xC280UL, sixteen_bit_storage_unit_width), is_true);
   assert_that(utf8c_is_finished(&state), is_true);
 }
-#endif
 
-#if CHAR_BIT % 8 != 0
 Ensure(partial_octet_from_storage_unit) {
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_feed_bits(&state, (unsigned char)0), is_true);
+  assert_that(utf8c_test_feed_bits(&state, 0, nine_bit_storage_unit_width), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
 
-  for (unsigned char unit = 1; unit < 8 && !utf8c_is_finished(&state); unit++) {
-    assert_that(utf8c_feed_bits(&state, (unsigned char)0), is_true);
+  for (unsigned char unit = 1; unit < nine_bit_storage_unit_feed_count && !utf8c_is_finished(&state);
+       unit++) {
+    assert_that(utf8c_test_feed_bits(&state, 0, nine_bit_storage_unit_width), is_true);
   }
   assert_that(utf8c_is_finished(&state), is_true);
 }
-#endif
 
 Ensure(unfinished) {
   static const unsigned char initial[] = {0xC2};
@@ -210,12 +215,8 @@ int main() {
   add_test(suite, split);
   add_test(suite, storage_unit_valid);
   add_test(suite, storage_unit_invalid);
-#if CHAR_BIT == 16
-  add_test(suite, two_octets_per_word);
-#endif
-#if CHAR_BIT % 8 != 0
+  add_test(suite, two_octets_per_storage_unit);
   add_test(suite, partial_octet_from_storage_unit);
-#endif
   add_test(suite, unfinished);
   add_test(suite, overlong);
   add_test(suite, surrogate);

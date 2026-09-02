@@ -1,5 +1,9 @@
 #include "utf8c.h"
 
+#ifdef UTF8C_TEST
+#include "utf8c_test.h"
+#endif
+
 #include <limits.h>
 #include <stdbit.h>
 #include <stddef.h>
@@ -56,6 +60,12 @@ enum : unsigned char {
   utf8_following_octet_payload_bit_count    = 6,
   utf8_octet_bit_count                      = 8,
   utf8_octet_mask                           = 0b11111111,
+  utf8_storage_unit_bit_count               = CHAR_BIT,
+};
+
+enum : unsigned {
+  utf8_unsigned_bit_count      = UINT_WIDTH,
+  utf8_unsigned_long_bit_count = ULONG_WIDTH,
 };
 
 enum : uint_least32_t {
@@ -71,19 +81,17 @@ enum : uint_least32_t {
   utf8_4_character_max            = 0x0010'FFFF,
 };
 
-enum : unsigned {
-  utf8_unsigned_bit_count = UINT_WIDTH,
-};
-
 static unsigned leading_ones_in_octet(unsigned char octet) {
-  return stdc_leading_ones((unsigned)octet << (utf8_unsigned_bit_count - utf8_octet_bit_count));
+  unsigned value = octet;
+  unsigned const aligned = value << (utf8_unsigned_bit_count - utf8_octet_bit_count);
+  return stdc_leading_ones(aligned);
 }
 
 struct state {
   uint_least32_t character;
   size_t remaining_octet_count;
   size_t octet_sequence_length;
-  unsigned char partial_octet;
+  unsigned partial_octet;
   unsigned char partial_bit_count;
   bool illegal;
 };
@@ -120,7 +128,9 @@ static bool is_character_valid(uint_least32_t const *character, size_t octet_seq
 
 static void append_following_octet_payload(struct state *state, unsigned char octet) {
   state->character <<= utf8_following_octet_payload_bit_count;
-  state->character |= (uint_least32_t)octet & utf8_following_octet_payload_mask;
+  unsigned payload = octet;
+  payload &= utf8_following_octet_payload_mask;
+  state->character |= payload;
 }
 
 static bool feed_following_octet(struct state *state, unsigned char octet) {
@@ -173,27 +183,29 @@ static bool feed_octet(struct state *state, unsigned char octet) {
   return feed_following_octet(state, octet);
 }
 
-static bool feed_bit(struct state *state, unsigned bit) {
-  state->partial_octet = (unsigned char)(((unsigned)state->partial_octet << 1U) | (bit & 1U));
+static bool feed_bit(struct state *state, unsigned char bit) {
+  state->partial_octet = (state->partial_octet << 1U) | bit;
   state->partial_bit_count++;
   if (state->partial_bit_count < utf8_octet_bit_count) return true;
 
-  unsigned char const octet = state->partial_octet;
+  unsigned char const octet = state->partial_octet & utf8_octet_mask;
   state->partial_octet = 0;
   state->partial_bit_count = 0;
   return feed_octet(state, octet);
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) internal; two call sites
-static bool feed_bits(struct utf8c *utf8c, unsigned char bits, unsigned char bit_count) {
+static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit_count) {
   if (utf8c == nullptr) unreachable();
 
   struct state state = state_of(utf8c);
   if (state.illegal) return false;
   if (bit_count == 0) return true;
 
+  if (bit_count < utf8_unsigned_long_bit_count) bits &= ((1UL << bit_count) - 1UL);
+
   for (unsigned char index = bit_count; index > 0; index--) {
-    unsigned const bit = ((unsigned)bits >> (index - 1U)) & 1U;
+    unsigned char const bit = (bits >> (index - 1U)) & 1UL;
     if (!feed_bit(&state, bit)) {
       store_state(utf8c, &state);
       return false;
@@ -204,7 +216,7 @@ static bool feed_bits(struct utf8c *utf8c, unsigned char bits, unsigned char bit
 }
 
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits) {
-  return feed_bits(utf8c, bits, CHAR_BIT);
+  return feed_bits(utf8c, bits, utf8_storage_unit_bit_count);
 }
 
 bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet) {
@@ -226,3 +238,9 @@ bool utf8c_is_finished(const struct utf8c *utf8c) {
   struct state state = state_of(utf8c);
   return !state.illegal && state.remaining_octet_count == 0 && state.partial_bit_count == 0;
 }
+
+#ifdef UTF8C_TEST
+bool utf8c_test_feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit_count) {
+  return feed_bits(utf8c, bits, bit_count);
+}
+#endif
