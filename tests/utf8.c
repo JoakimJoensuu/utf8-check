@@ -22,6 +22,14 @@ static bool well_formed(const unsigned char *octets, size_t length) {
   return feed_octets(&state, octets, length) && utf8c_is_finished(&state);
 }
 
+static bool well_formed_storage_units(const unsigned char *units, size_t length) {
+  struct utf8c state = utf8c_create();
+  for (size_t index = 0; index < length; index++) {
+    if (!utf8c_feed_bits(&state, units[index])) return false;
+  }
+  return utf8c_is_finished(&state);
+}
+
 Ensure(empty) {
   struct utf8c state = utf8c_create();
   assert_that(utf8c_is_finished(&state), is_true);
@@ -67,6 +75,19 @@ Ensure(split) {
   assert_that(utf8c_is_finished(&state), is_false);
   assert_that(feed_octets(&state, seq + 3, 1), is_true);
   assert_that(utf8c_is_finished(&state), is_true);
+}
+
+Ensure(storage_unit_valid) {
+  static const unsigned char units[] = {'A', 0xC2, 0x80};
+  assert_that(well_formed_storage_units(units, sizeof(units)), is_true);
+}
+
+Ensure(storage_unit_invalid) {
+  static const unsigned char units[] = {0xC2, 0x00};
+  struct utf8c state = utf8c_create();
+  assert_that(utf8c_feed_bits(&state, units[0]), is_true);
+  assert_that(utf8c_feed_bits(&state, units[1]), is_false);
+  assert_that(utf8c_is_finished(&state), is_false);
 }
 
 #if CHAR_BIT == 16
@@ -189,6 +210,8 @@ int main() {
   add_test(suite, three_byte);
   add_test(suite, four_byte);
   add_test(suite, split);
+  add_test(suite, storage_unit_valid);
+  add_test(suite, storage_unit_invalid);
 #if CHAR_BIT == 16
   add_test(suite, two_octets_per_word);
 #endif
