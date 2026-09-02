@@ -72,7 +72,6 @@ enum : uint_least32_t {
 };
 
 enum : unsigned {
-  utf8_bits_per_word      = ULONG_WIDTH,
   utf8_unsigned_bit_count = UINT_WIDTH,
 };
 
@@ -187,13 +186,10 @@ static bool feed_bit(struct state *state, unsigned bit) {
 
 static bool feed_bits(struct utf8c *utf8c, unsigned char bits, unsigned char bit_count) {
   if (utf8c == nullptr) unreachable();
-  if (bit_count > utf8_bits_per_word) unreachable();
 
   struct state state = state_of(utf8c);
   if (state.illegal) return false;
   if (bit_count == 0) return true;
-
-  if (bit_count < utf8_bits_per_word) bits &= (unsigned char)(((1UL << bit_count) - 1UL));
 
   for (unsigned index = bit_count; index > 0; index--) {
     unsigned const bit = (unsigned)((bits >> (index - 1)) & 1UL);
