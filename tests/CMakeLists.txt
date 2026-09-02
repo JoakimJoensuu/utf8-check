@@ -6,6 +6,8 @@ set(CGREEN_WITH_STATIC_LIBRARY ON CACHE BOOL "" FORCE)
 set(CGREEN_WITH_XML OFF CACHE BOOL "" FORCE)
 set(CGREEN_WITH_LIBXML2 OFF CACHE BOOL "" FORCE)
 
+set(GITREVISION "unknown" CACHE STRING "" FORCE)
+
 FetchContent_Declare(
   cgreen
   GIT_REPOSITORY https://github.com/cgreen-devs/cgreen.git
