@@ -84,7 +84,7 @@ Ensure(storage_unit_valid) {
 
 Ensure(storage_unit_invalid) {
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_feed_bits(&state, (unsigned char)~0), is_false);
+  assert_that(utf8c_feed_bits(&state, (unsigned char)~0U), is_false);
   assert_that(utf8c_is_finished(&state), is_false);
 }
 
