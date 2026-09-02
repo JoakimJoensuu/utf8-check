@@ -4,12 +4,12 @@
 
 int main() {
   struct utf8c state = utf8c_create();
-  unsigned char octets[BUFSIZ];
+  unsigned char units[BUFSIZ];
   for (;;) {
-    size_t octet_count = fread(octets, 1, sizeof(octets), stdin);
-    if (octet_count == 0) break;
-    for (size_t index = 0; index < octet_count; index++) {
-      if (!utf8c_feed_octet(&state, octets[index])) return 1;
+    size_t unit_count = fread(units, 1, sizeof(units), stdin);
+    if (unit_count == 0) break;
+    for (size_t index = 0; index < unit_count; index++) {
+      if (!utf8c_feed_bits(&state, units[index])) return 1;
     }
   }
   if (ferror(stdin) != 0) return 1;

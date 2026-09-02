@@ -34,7 +34,8 @@ bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits);
 bool utf8c_feed_octet(struct utf8c *utf8c, unsigned octet);
 
 /**
- * @return true if input is valid and no code point remains incomplete from prior feeds.
+ * @return true if input is valid and no octet or code point remains incomplete from prior
+ * feeds.
  */
 bool utf8c_is_finished(const struct utf8c *utf8c);
 

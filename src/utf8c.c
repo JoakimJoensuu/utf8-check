@@ -72,8 +72,8 @@ enum : uint_least32_t {
 };
 
 enum : unsigned {
-  utf8_bits_per_word      = (unsigned)(sizeof(unsigned long) * CHAR_BIT),
-  utf8_unsigned_bit_count = (unsigned)(sizeof(unsigned) * CHAR_BIT),
+  utf8_bits_per_word      = ULONG_WIDTH,
+  utf8_unsigned_bit_count = UINT_WIDTH,
 };
 
 static unsigned leading_ones_in_octet(unsigned octet) {

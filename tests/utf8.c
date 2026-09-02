@@ -69,7 +69,7 @@ Ensure(split) {
   assert_that(utf8c_is_finished(&state), is_true);
 }
 
-#if CHAR_BIT >= 16
+#if CHAR_BIT == 16
 Ensure(two_octets_per_word) {
   struct utf8c state = utf8c_create();
   assert_that(utf8c_feed_bits(&state, (unsigned char)0xC280), is_true);
@@ -185,7 +185,7 @@ int main() {
   add_test(suite, three_byte);
   add_test(suite, four_byte);
   add_test(suite, split);
-#if CHAR_BIT >= 16
+#if CHAR_BIT == 16
   add_test(suite, two_octets_per_word);
 #endif
   add_test(suite, unfinished);
