@@ -5,8 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Upper bound on the private state size: per-field size plus worst-case pad, then
- * trailing pad for struct alignment (sum of per-type align-1 bounds the max). */
 static constexpr size_t utf8c_opaque_size =
     sizeof(uint_least32_t) + (alignof(uint_least32_t) - 1) + sizeof(uint8_t) +
     (alignof(uint8_t) - 1) + sizeof(uint8_t) + (alignof(uint8_t) - 1) + sizeof(bool) +
