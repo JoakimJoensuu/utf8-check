@@ -136,6 +136,13 @@ Ensure(invalid_initial) {
   assert_that(well_formed(initial_fe, sizeof(initial_fe)), is_false);
 }
 
+Ensure(mixed) {
+  static const uint8_t octets[] = {
+      'A', 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x90, 0x80, 0x80, 'z',
+  };
+  assert_that(well_formed(octets, sizeof(octets)), is_true);
+}
+
 int main() {
   auto suite = create_test_suite();
   add_test(suite, empty);
@@ -152,6 +159,7 @@ int main() {
   add_test(suite, reject_sticks);
   add_test(suite, bad_following);
   add_test(suite, invalid_initial);
+  add_test(suite, mixed);
   auto reporter = create_text_reporter();
   int result = run_test_suite(suite, reporter);
   destroy_test_suite(suite);

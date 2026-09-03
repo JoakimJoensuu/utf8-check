@@ -6,18 +6,18 @@
 #include <stdint.h>
 
 /* Upper bound on the private state size: per-field size plus worst-case pad, then
- * trailing pad for struct alignment (alignof(uint_least32_t) is the strictest field
- * alignment). */
+ * trailing pad for struct alignment (sum of per-type align-1 bounds the max). */
 static constexpr size_t utf8c_opaque_size =
     sizeof(uint_least32_t) + (alignof(uint_least32_t) - 1) + sizeof(uint8_t) +
     (alignof(uint8_t) - 1) + sizeof(uint8_t) + (alignof(uint8_t) - 1) + sizeof(bool) +
-    (alignof(bool) - 1) + (alignof(uint_least32_t) - 1);
+    (alignof(bool) - 1) + (alignof(uint_least32_t) - 1) + (alignof(uint8_t) - 1) +
+    (alignof(bool) - 1);
 
 /**
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
  */
 struct utf8c {
-  alignas(uint_least32_t) unsigned char opaque[utf8c_opaque_size];
+  alignas(uint_least32_t) alignas(uint8_t) alignas(bool) unsigned char opaque[utf8c_opaque_size];
 };
 
 struct utf8c utf8c_create();
