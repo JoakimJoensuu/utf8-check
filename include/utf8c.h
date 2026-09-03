@@ -8,7 +8,8 @@
 static constexpr size_t utf8c_opaque_size =
     sizeof(uint_least32_t) + sizeof(size_t) + sizeof(size_t) + sizeof(unsigned) +
     sizeof(unsigned char) + sizeof(bool) + alignof(uint_least32_t) + alignof(size_t) +
-    alignof(size_t) + alignof(unsigned) + alignof(unsigned char) + alignof(bool);
+    alignof(size_t) + alignof(unsigned) + alignof(unsigned char) + alignof(bool) +
+    alignof(max_align_t);
 
 /**
  * Incremental well-formed UTF-8 (RFC 3629 §3) checker. Contents are private.
