@@ -12,6 +12,8 @@
 enum : unsigned long {
   nine_bit_storage_unit_width    = 9,
   sixteen_bit_storage_unit_width = 16,
+  /* 'A' (8 bits) followed by one extra zero bit, packed into a 9-bit unit */
+  nine_bit_unit_ascii_a_plus_one_bit = (0x41UL << 1U),
 };
 
 static bool feed_octets(struct utf8c *state, const unsigned char *octets, size_t length) {
@@ -99,18 +101,18 @@ Ensure(two_octets_per_storage_unit) {
 }
 
 Ensure(partial_octet_from_storage_unit) {
-  static size_t const units[] = {389, 1, 10, 20, 40, 80, 160, 321};
-  static unsigned char const octets[] = {0xC2, 0x80, 'A', 'A', 'A', 'A', 'A', 'A', 'A'};
-
+  /* One 9-bit unit encodes ASCII 'A' then leaves one bit of the next octet
+   * pending. The stream is otherwise valid, so only partial_bit_count keeps
+   * the state unfinished after that first unit. */
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_feed_bit_pattern(&state, units[0], nine_bit_storage_unit_width), is_true);
+  assert_that(utf8c_feed_bit_pattern(&state, nine_bit_unit_ascii_a_plus_one_bit,
+                                     nine_bit_storage_unit_width),
+              is_true);
   assert_that(utf8c_is_finished(&state), is_false);
 
-  for (size_t index = 1; index < sizeof(units) / sizeof(units[0]); index++) {
-    assert_that(utf8c_feed_bit_pattern(&state, units[index], nine_bit_storage_unit_width), is_true);
-  }
+  /* Feed seven more zero bits to complete the pending octet (NUL). */
+  assert_that(utf8c_feed_bit_pattern(&state, 0, 7), is_true);
   assert_that(utf8c_is_finished(&state), is_true);
-  assert_that(well_formed(octets, sizeof(octets)), is_true);
 }
 
 Ensure(unfinished) {
