@@ -60,9 +60,10 @@ enum : unsigned char {
 };
 
 enum : unsigned {
-  utf8_unsigned_bit_count      = UINT_WIDTH,
-  utf8_unsigned_long_bit_count = ULONG_WIDTH,
+  utf8_unsigned_bit_count = UINT_WIDTH,
 };
+
+static constexpr unsigned long utf8_unsigned_long_bit_count = ULONG_WIDTH;
 
 enum : uint_least32_t {
   utf8_1_character_min            = 0x0000'0000,
