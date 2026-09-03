@@ -11,9 +11,9 @@
 #include <stddef.h>
 
 enum : unsigned long {
-  utf8_octet_bit_count             = 8,
-  nine_bit_storage_unit_width      = 9,
-  sixteen_bit_storage_unit_width   = 16,
+  utf8_octet_bit_count           = 8,
+  nine_bit_storage_unit_width    = 9,
+  sixteen_bit_storage_unit_width = 16,
   /* 'A' (8 bits) followed by one extra zero bit, packed into a 9-bit unit */
   nine_bit_unit_ascii_a_plus_one_bit = (0x41UL << 1U),
 };
