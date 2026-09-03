@@ -29,9 +29,10 @@ enum utf8_initial_octet_leading_ones : uint8_t {
 };
 
 enum utf8_octet_sequence_length : uint8_t {
-  utf8_2_octet_sequence_length = 2,
-  utf8_3_octet_sequence_length = 3,
-  utf8_4_octet_sequence_length = 4,
+  utf8_no_octet_sequence_length = 0,
+  utf8_2_octet_sequence_length  = 2,
+  utf8_3_octet_sequence_length  = 3,
+  utf8_4_octet_sequence_length  = 4,
 };
 
 enum utf8_initial_octet_mask : uint8_t {
@@ -72,7 +73,7 @@ enum : uint_least32_t {
 struct state {
   uint_least32_t character;
   uint8_t remaining_octet_count;
-  uint8_t octet_sequence_length;
+  enum utf8_octet_sequence_length octet_sequence_length;
   bool illegal;
 };
 
@@ -95,16 +96,21 @@ static void store_state(struct utf8c *utf8c, const struct state *state) {
   memcpy(utf8c->opaque, state, sizeof(*state));
 }
 
-static bool is_character_valid(const struct state *state) {
-  switch (state->octet_sequence_length) {
+struct character_and_sequence {
+  uint_least32_t character;
+  enum utf8_octet_sequence_length octet_sequence_length;
+};
+
+static bool is_character_valid(struct character_and_sequence values) {
+  switch (values.octet_sequence_length) {
   case utf8_2_octet_sequence_length:
-    return state->character >= utf8_2_character_min && state->character <= utf8_2_character_max;
+    return values.character >= utf8_2_character_min && values.character <= utf8_2_character_max;
   case utf8_3_octet_sequence_length:
-    return state->character >= utf8_3_character_min && state->character <= utf8_3_character_max &&
-           (state->character < utf8_3_prohibited_character_min ||
-            state->character > utf8_3_prohibited_character_max);
+    return values.character >= utf8_3_character_min && values.character <= utf8_3_character_max &&
+           (values.character < utf8_3_prohibited_character_min ||
+            values.character > utf8_3_prohibited_character_max);
   case utf8_4_octet_sequence_length:
-    return state->character >= utf8_4_character_min && state->character <= utf8_4_character_max;
+    return values.character >= utf8_4_character_min && values.character <= utf8_4_character_max;
   default:
     unreachable();
   }
@@ -127,13 +133,16 @@ static bool feed_following_octet(struct state *state, uint8_t octet) {
   state->remaining_octet_count--;
   if (state->remaining_octet_count != 0) return true;
 
-  if (!is_character_valid(state)) {
+  if (!is_character_valid((struct character_and_sequence){
+          .character = state->character,
+          .octet_sequence_length = state->octet_sequence_length,
+      })) {
     state->illegal = true;
     return false;
   }
 
   state->character = 0;
-  state->octet_sequence_length = 0;
+  state->octet_sequence_length = utf8_no_octet_sequence_length;
   return true;
 }
 
