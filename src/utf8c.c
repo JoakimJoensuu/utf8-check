@@ -162,18 +162,18 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
   }
 }
 
-static bool feed_octet(struct state *state, uint8_t octet) {
-  if (state->remaining_octet_count == 0) return feed_initial_octet(state, octet);
-  return feed_following_octet(state, octet);
-}
-
 bool utf8c_feed_octet(struct utf8c *utf8c, uint8_t octet) {
   if (utf8c == nullptr) unreachable();
 
   struct state state = state_of(utf8c);
   if (state.illegal) return false;
 
-  bool const still_valid = feed_octet(&state, octet);
+  bool still_valid = false;
+  if (state.remaining_octet_count == 0) {
+    still_valid = feed_initial_octet(&state, octet);
+  } else {
+    still_valid = feed_following_octet(&state, octet);
+  }
   store_state(utf8c, &state);
   return still_valid;
 }
