@@ -110,11 +110,11 @@ static bool is_character_valid(const struct state *state) {
   }
 }
 
-static void append_following_octet_payload(struct state *state, uint8_t octet) {
-  state->character <<= utf8_following_octet_payload_bit_count;
+static void append_following_octet_payload(uint_least32_t *character, uint8_t octet) {
+  *character <<= utf8_following_octet_payload_bit_count;
   unsigned payload = octet;
   payload &= utf8_following_octet_payload_mask;
-  state->character |= payload;
+  *character |= payload;
 }
 
 static bool feed_following_octet(struct state *state, uint8_t octet) {
@@ -123,7 +123,7 @@ static bool feed_following_octet(struct state *state, uint8_t octet) {
     return false;
   }
 
-  append_following_octet_payload(state, octet);
+  append_following_octet_payload(&state->character, octet);
   state->remaining_octet_count--;
   if (state->remaining_octet_count != 0) return true;
 
