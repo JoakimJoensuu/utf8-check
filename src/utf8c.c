@@ -69,10 +69,10 @@ enum : uint_least32_t {
   utf8_4_character_max            = 0x0010'FFFF,
 };
 
-static uint8_t leading_ones_in_octet(uint8_t octet) {
+static unsigned leading_ones_in_octet(uint8_t octet) {
   unsigned value = octet;
   unsigned const aligned = value << (utf8_unsigned_bit_count - utf8_octet_bit_count);
-  return (uint8_t)stdc_leading_ones(aligned);
+  return stdc_leading_ones(aligned);
 }
 
 struct state {
