@@ -173,12 +173,9 @@ bool utf8c_feed_octet(struct utf8c *utf8c, uint8_t octet) {
   struct state state = state_of(utf8c);
   if (state.illegal) return false;
 
-  if (!feed_octet(&state, octet)) {
-    store_state(utf8c, &state);
-    return false;
-  }
+  bool const still_valid = feed_octet(&state, octet);
   store_state(utf8c, &state);
-  return true;
+  return still_valid;
 }
 
 struct utf8c utf8c_create() {
