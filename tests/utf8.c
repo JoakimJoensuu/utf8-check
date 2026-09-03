@@ -9,7 +9,7 @@
 #include <cgreen/unit.h>
 #include <stddef.h>
 
-enum : unsigned char {
+enum : unsigned long {
   nine_bit_storage_unit_width    = 9,
   sixteen_bit_storage_unit_width = 16,
 };

@@ -190,7 +190,7 @@ static bool feed_bit(struct state *state, unsigned char bit) {
   return feed_octet(state, octet);
 }
 
-static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit_count) {
+static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned long bit_count) {
   if (utf8c == nullptr) unreachable();
   if (bit_count > utf8_unsigned_long_bit_count) unreachable();
 
@@ -200,8 +200,8 @@ static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit
 
   if (bit_count < utf8_unsigned_long_bit_count) bits &= ((1UL << bit_count) - 1UL);
 
-  for (unsigned char index = bit_count; index > 0; index--) {
-    unsigned char const bit = (bits >> (index - 1U)) & 1UL;
+  for (unsigned long index = bit_count; index > 0; index--) {
+    unsigned char const bit = (bits >> (index - 1UL)) & 1UL;
     if (!feed_bit(&state, bit)) {
       store_state(utf8c, &state);
       return false;
@@ -212,10 +212,10 @@ static bool feed_bits(struct utf8c *utf8c, unsigned long bits, unsigned char bit
 }
 
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits) {
-  return feed_bits(utf8c, bits, utf8_storage_unit_bit_count);
+  return feed_bits(utf8c, bits, (unsigned long)utf8_storage_unit_bit_count);
 }
 
-bool utf8c_feed_bit_pattern(struct utf8c *utf8c, size_t bits, unsigned char bit_count) {
+bool utf8c_feed_bit_pattern(struct utf8c *utf8c, size_t bits, unsigned long bit_count) {
   return feed_bits(utf8c, (unsigned long)bits, bit_count);
 }
 
