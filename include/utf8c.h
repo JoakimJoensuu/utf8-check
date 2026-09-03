@@ -29,8 +29,8 @@ struct utf8c utf8c_create();
 bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits);
 
 /**
- * Feed @p bit_count bits from @p bits, MSB-first. Each 8 bits is one RFC 3629
- * octet. @p bit_count must not exceed @c ULONG_WIDTH.
+ * Feed the least significant @p bit_count bits of @p bits, MSB-first within that
+ * field. Each 8 bits is one RFC 3629 octet. @p bit_count must not exceed @c ULONG_WIDTH.
  * @return true if still valid, including an incomplete octet or code point.
  */
 bool utf8c_feed_bit_pattern(struct utf8c *utf8c, unsigned long bits, unsigned long bit_count);

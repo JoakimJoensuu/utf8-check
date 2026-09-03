@@ -11,8 +11,9 @@
 #include <stddef.h>
 
 enum : unsigned long {
-  nine_bit_storage_unit_width    = 9,
-  sixteen_bit_storage_unit_width = 16,
+  utf8_octet_bit_count             = 8,
+  nine_bit_storage_unit_width      = 9,
+  sixteen_bit_storage_unit_width   = 16,
   /* 'A' (8 bits) followed by one extra zero bit, packed into a 9-bit unit */
   nine_bit_unit_ascii_a_plus_one_bit = (0x41UL << 1U),
 };
@@ -99,6 +100,16 @@ Ensure(two_octets_per_storage_unit) {
   struct utf8c state = utf8c_create();
   assert_that(utf8c_feed_bit_pattern(&state, 0xC280, sixteen_bit_storage_unit_width), is_true);
   assert_that(utf8c_is_finished(&state), is_true);
+}
+
+Ensure(ulong_width_bit_pattern) {
+  struct utf8c state = utf8c_create();
+  assert_that(utf8c_feed_bit_pattern(&state, 0, ULONG_WIDTH), is_true);
+  if (ULONG_WIDTH % utf8_octet_bit_count == 0) {
+    assert_that(utf8c_is_finished(&state), is_true);
+  } else {
+    assert_that(utf8c_is_finished(&state), is_false);
+  }
 }
 
 Ensure(partial_octet_from_storage_unit) {
@@ -227,6 +238,7 @@ int main() {
   add_test(suite, storage_unit_valid);
   add_test(suite, storage_unit_invalid);
   add_test(suite, two_octets_per_storage_unit);
+  add_test(suite, ulong_width_bit_pattern);
   add_test(suite, partial_octet_from_storage_unit);
   add_test(suite, unfinished);
   add_test(suite, zero_bits_while_incomplete);
