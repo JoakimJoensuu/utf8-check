@@ -32,7 +32,7 @@ bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits);
  * octet. @p bit_count must not exceed @c ULONG_WIDTH.
  * @return true if still valid, including an incomplete octet or code point.
  */
-bool utf8c_feed_bit_pattern(struct utf8c *utf8c, size_t bits, unsigned long bit_count);
+bool utf8c_feed_bit_pattern(struct utf8c *utf8c, unsigned long bits, unsigned long bit_count);
 
 /**
  * Feed one RFC 3629 octet (8 bits). Do not call while @c utf8c_feed_bits() or

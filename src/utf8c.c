@@ -215,8 +215,8 @@ bool utf8c_feed_bits(struct utf8c *utf8c, unsigned char bits) {
   return feed_bits(utf8c, bits, (unsigned long)utf8_storage_unit_bit_count);
 }
 
-bool utf8c_feed_bit_pattern(struct utf8c *utf8c, size_t bits, unsigned long bit_count) {
-  return feed_bits(utf8c, (unsigned long)bits, bit_count);
+bool utf8c_feed_bit_pattern(struct utf8c *utf8c, unsigned long bits, unsigned long bit_count) {
+  return feed_bits(utf8c, bits, bit_count);
 }
 
 bool utf8c_feed_octet(struct utf8c *utf8c, unsigned char octet) {
