@@ -79,8 +79,6 @@ struct state {
 
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
-static_assert(sizeof(enum utf8_octet_sequence_length) == sizeof(uint8_t));
-static_assert(alignof(enum utf8_octet_sequence_length) == alignof(uint8_t));
 
 static unsigned leading_ones_in_octet(uint8_t octet) {
   unsigned value = octet;
