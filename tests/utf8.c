@@ -7,6 +7,7 @@
 #include <cgreen/suite.h>
 #include <cgreen/text_reporter.h>
 #include <cgreen/unit.h>
+#include <limits.h>
 #include <stddef.h>
 
 enum : unsigned long {
@@ -90,7 +91,7 @@ Ensure(storage_unit_valid) {
 
 Ensure(storage_unit_invalid) {
   struct utf8c state = utf8c_create();
-  assert_that(utf8c_feed_bits(&state, (unsigned char)~0U), is_false);
+  assert_that(utf8c_feed_bits(&state, UCHAR_MAX), is_false);
   assert_that(utf8c_is_finished(&state), is_false);
 }
 
@@ -119,6 +120,15 @@ Ensure(unfinished) {
   static const unsigned char initial[] = {0xC2};
   struct utf8c state = utf8c_create();
   assert_that(feed_octets(&state, initial, sizeof(initial)), is_true);
+  assert_that(utf8c_is_finished(&state), is_false);
+}
+
+Ensure(zero_bits_while_incomplete) {
+  static const unsigned char initial[] = {0xC2};
+  struct utf8c state = utf8c_create();
+  assert_that(feed_octets(&state, initial, sizeof(initial)), is_true);
+  assert_that(utf8c_is_finished(&state), is_false);
+  assert_that(utf8c_feed_bit_pattern(&state, 0, 0), is_true);
   assert_that(utf8c_is_finished(&state), is_false);
 }
 
@@ -219,6 +229,7 @@ int main() {
   add_test(suite, two_octets_per_storage_unit);
   add_test(suite, partial_octet_from_storage_unit);
   add_test(suite, unfinished);
+  add_test(suite, zero_bits_while_incomplete);
   add_test(suite, overlong);
   add_test(suite, surrogate);
   add_test(suite, too_big);
