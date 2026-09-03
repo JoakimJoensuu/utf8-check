@@ -69,12 +69,6 @@ enum : uint_least32_t {
   utf8_4_character_max            = 0x0010'FFFF,
 };
 
-static unsigned leading_ones_in_octet(uint8_t octet) {
-  unsigned value = octet;
-  unsigned const aligned = value << (utf8_unsigned_bit_count - utf8_octet_bit_count);
-  return stdc_leading_ones(aligned);
-}
-
 struct state {
   uint_least32_t character;
   uint8_t remaining_octet_count;
@@ -84,6 +78,12 @@ struct state {
 
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
+
+static unsigned leading_ones_in_octet(uint8_t octet) {
+  unsigned value = octet;
+  unsigned const aligned = value << (utf8_unsigned_bit_count - utf8_octet_bit_count);
+  return stdc_leading_ones(aligned);
+}
 
 static struct state state_of(const struct utf8c *utf8c) {
   struct state state;
