@@ -87,13 +87,13 @@ static void store_state(struct utf8c *utf8c, const struct state *state) {
 static bool is_character_valid(const struct state *state) {
   switch (state->octet_sequence_length) {
   case utf8_2_octet_sequence_length:
-    return state->character >= utf8_2_character_min && state->character <= utf8_2_character_max;
+    return utf8_2_character_min <= state->character && state->character <= utf8_2_character_max;
   case utf8_3_octet_sequence_length:
-    return state->character >= utf8_3_character_min && state->character <= utf8_3_character_max &&
+    return utf8_3_character_min <= state->character && state->character <= utf8_3_character_max &&
            (state->character < utf8_3_prohibited_character_min ||
-            state->character > utf8_3_prohibited_character_max);
+            utf8_3_prohibited_character_max < state->character);
   case utf8_4_octet_sequence_length:
-    return state->character >= utf8_4_character_min && state->character <= utf8_4_character_max;
+    return utf8_4_character_min <= state->character && state->character <= utf8_4_character_max;
   default:
     unreachable();
   }
