@@ -1,6 +1,5 @@
 #include "utf8c.h"
 
-#include <limits.h>
 #include <stdbit.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -52,11 +51,6 @@ enum : uint8_t {
   utf8_following_octet_high_order_bits      = 0b10000000,
   utf8_following_octet_payload_mask         = 0b00111111,
   utf8_following_octet_payload_bit_count    = 6,
-  utf8_octet_bit_count                      = 8,
-};
-
-enum : unsigned {
-  utf8_unsigned_bit_count = UINT_WIDTH,
 };
 
 enum : uint_least32_t {
@@ -79,12 +73,6 @@ struct state {
 
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
-
-static unsigned leading_ones_in_octet(uint8_t octet) {
-  unsigned value = octet;
-  unsigned const aligned = value << (utf8_unsigned_bit_count - utf8_octet_bit_count);
-  return stdc_leading_ones(aligned);
-}
 
 static struct state state_of(const struct utf8c *utf8c) {
   struct state state;
@@ -139,7 +127,7 @@ static bool feed_following_octet(struct state *state, uint8_t octet) {
 }
 
 static bool feed_initial_octet(struct state *state, uint8_t octet) {
-  switch (leading_ones_in_octet(octet)) {
+  switch (stdc_leading_ones_uc(octet)) {
   case utf8_1_initial_octet_leading_ones:
     return true;
   case utf8_2_initial_octet_leading_ones:
