@@ -74,14 +74,16 @@ struct state {
 static_assert(sizeof(struct state) <= sizeof(struct utf8c));
 static_assert(alignof(struct state) <= alignof(struct utf8c));
 
-static struct state state_of(const struct utf8c *utf8c) {
-  struct state state;
-  memcpy(&state, utf8c->opaque, sizeof(state));
-  return state;
+static struct state transparent_state(const struct utf8c *utf8c) {
+  struct state transparent;
+  memcpy(&transparent, utf8c->opaque, sizeof(transparent));
+  return transparent;
 }
 
-static void store_state(struct utf8c *utf8c, const struct state *state) {
-  memcpy(utf8c->opaque, state, sizeof(*state));
+static struct utf8c opaque_state(const struct state *state) {
+  struct utf8c opaque = {};
+  memcpy(opaque.opaque, state, sizeof(*state));
+  return opaque;
 }
 
 static bool is_character_valid(const struct state *state) {
@@ -154,7 +156,7 @@ static bool feed_initial_octet(struct state *state, uint8_t octet) {
 bool utf8c_feed_octet(struct utf8c *utf8c, uint8_t octet) {
   if (utf8c == nullptr) unreachable();
 
-  struct state state = state_of(utf8c);
+  struct state state = transparent_state(utf8c);
   if (state.illegal) return false;
 
   bool still_valid = false;
@@ -163,7 +165,7 @@ bool utf8c_feed_octet(struct utf8c *utf8c, uint8_t octet) {
   } else {
     still_valid = feed_following_octet(&state, octet);
   }
-  store_state(utf8c, &state);
+  *utf8c = opaque_state(&state);
   return still_valid;
 }
 
@@ -174,6 +176,6 @@ struct utf8c utf8c_create() {
 bool utf8c_is_finished(const struct utf8c *utf8c) {
   if (utf8c == nullptr) unreachable();
 
-  struct state state = state_of(utf8c);
+  struct state state = transparent_state(utf8c);
   return !state.illegal && state.remaining_octet_count == 0;
 }
